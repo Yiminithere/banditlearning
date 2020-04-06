@@ -1,6 +1,7 @@
-\documentclass[10pt,a4paper]{amsart}
-%\documentclass[10pt]{article}
-\usepackage{amsfonts}
+\documentclass[10pt,a4article]{amsart}
+%\documentclass[10pt]{paper}
+%\documentclass[10pt,a4paper,twoside]{paper}
+%\usepackage{amsfonts}
 \usepackage{amsthm}
 \usepackage[ruled,vlined]{algorithm2e}
 \usepackage{amsmath}
@@ -20,7 +21,6 @@
 \usepackage{mathtools}
 \usepackage[dvipsnames]{xcolor}
 
- 
 \usepackage[backend=biber,date=year,giveninits=true,sorting=nyt,style=alphabetic,natbib=true,maxcitenames=2,maxbibnames=10,url=false,doi=true,backref=false]{biblatex}
 \addbibresource{sb.bib}
 
@@ -34,23 +34,8 @@
  
 \usepackage[colorlinks,linkcolor = purple, citecolor=blue]{hyperref} 
 
- 
-\definecolor{mypink1}{rgb}{0.858, 0.188, 0.478}
-\definecolor{mypink2}{RGB}{219, 48, 122}
-\definecolor{mypink3}{cmyk}{0, 0.7808, 0.4429, 0.1412}
-\definecolor{mygray}{gray}{0.6}
 
 
-% For aligned \stackrel, use \leftstackrel
-\newlength{\leftstackrelawd}
-\newlength{\leftstackrelbwd}
-\def\leftstackrel#1#2{\settowidth{\leftstackrelawd}%
-{${{}^{#1}}$}\settowidth{\leftstackrelbwd}{$#2$}%
-\addtolength{\leftstackrelawd}{-\leftstackrelbwd}%
-\leavevmode\ifthenelse{\lengthtest{\leftstackrelawd>0pt}}%
-{\kern-.5\leftstackrelawd}{}\mathrel{\mathop{#2}\limits^{#1}}}
-
- 
 \theoremstyle{plain}
 \newtheorem{Th}{Theorem}
 \newtheorem{Lemma}[Th]{Lemma}
@@ -108,6 +93,7 @@
 
 \DeclareMathOperator*{\argmax}{arg\,max}
 \DeclareMathOperator*{\argmin}{arg\,min}
+\usepackage{filecontents}
 
 
 
@@ -119,7 +105,7 @@
 \maketitle
 
 
-These notes are based on the book \cite{lattimore2018bandit}.  The purpose is to assist my own understanding of the material, and also keeps a record for what has been covered in the reading course. Any imprecision or mistakes should be due to my own. 
+These notes are based on the book \cite{lattimore2018bandit}. The purpose is mainly to assist my own understanding of the material, but also keeps a record for what has been covered in the reading course. Any imprecision or mistakes should be due to my own. 
 
 \section{Stochastic bandits}\label{sec1}
 
@@ -403,7 +389,7 @@ where $\mathcal A_t = \{\phi(c_t, i)\}_{i\in [k]}$ is the set of features availa
 
 We next discuss a few policies in stochastic linear bandits, depending on different assumptions on $\mathcal A_t$. Note that $\mathcal A_t$ is finite from the perspective of stochastic contextual bandits and the kernel map. However, in the general set-up of stochastic linear bandits, $\mathcal A_t$ is allowed to be infinite. Regardless of varying assumptions on $\mathcal A_t$, the regret defined in \eqref{sl:4} is based on the lack of information of $r$ so that one always needs to efficiently estimate for $\theta$ in the exploration process. Nevertheless, the efficiency here can have different meanings for different types of $\mathcal A_t$, which needs to be discussed in a case-dependent manner. 
 
-\subsection{Stochastic linear bandits: fixed and finite action sets}
+\subsection{Stochastic linear bandits with finite and fixed action sets}
 
 We begin our analysis for stochastic linear bandits whose action set $\mathcal A_t = \mathcal A$ does not change with time. We also assume that $|\mathcal A|=k$. Let $a_t\in\mathcal A$ be the feature vector associated with the action under some policy $\pi$ at time $t$. The exploration process suffices to estimate $\t$, and a natural estimator is the least-squares estimator. One may use the Ridge estimator if having invertibility issues. Precisely, in round $t$, $\t$ is estimated by $\hat{\t}_t$, where $\hat{\t}_t $ solves the normal equations: 
 \begin{align*}
@@ -547,19 +533,260 @@ R_n=\mathcal O\left(\sqrt{nd\log (kn)}+\e n\sqrt{d}\log n\right).
 Taking $\mathcal A$ as canonical bases in $\R^d$ and $d=k$,  Algorithm \ref{alg:sl-finite} reduces to an elimination algorithm for stochastic bandits. Theorem \ref{sl:finite} tells us that the asymptotic regret is $\mathcal O(\sqrt{nk\log\log n})$.   
 \end{Rem}
 
-\subsection{Stochastic linear bandits: general action sets}
+\subsection{Stochastic linear bandits with general action sets}
+
+We now consider stochastic linear bandits with general action sets, which means that $\mathcal A_t$ can be both time-varying and infinite.
+This requires us to find all-rounded confidence sets adaptively.  
+Suppose for now that $\t$ is still estimated by least-squares estimators. 
+A possible choice for confidence sets is a sequence of balls weighted by the design matrices, similar to the ones used in the classical linear regression.
+However, the analysis here is more intricate due to the adaptive nature of the design matrices. 
+We will also provide a different approach to constructing the confidence sets based on online learning prediction, which allows one to utilize the prior knowledge of $\t$ in the construction. 
+Except for the confidence sets, the general algorithm resembles the UCB algorithm in Section \ref{sec1}. 
+This implies that $\t$ is estimated stepwise and the decision is made under optimistic bias.  
+Therefore, it is thus necessary to use regularized least-squares estimators to avoid invertibility issues (at the beginning). Particularly, let $\lambda>0$ be a regularization parameter and our estimation for $\t$ at time $t$ is given by 
+\begin{align*}
+\hat{\t}_t = (\underbrace{\lambda I +A^T_{t-1}A_{t-1}}_{V_t(\lambda)})^{-1}A^T_{t-1}\begin{pmatrix}
+x_1 \\
+\vdots \\
+x_{t-1}
+\end{pmatrix}.
+\end{align*}
+Suppose that the confidence set at $t$ is an $V^{-1}_{t-1}(\lambda)$-weighted ball centered at $\hat{\t}_t$\footnote{Taking $\hat{\t}_t$ as the regularized least-squares estimator is convenient and gives heuristics on the shape of the confidences sets. Other reasonable estimators also work in the following analysis.}, i.e., $\mathcal C_t = \{z\in\R^d: ||z-\hat{\t}_t||^2_{V_{t-1}(\lambda)}\leq\beta_t\}$, where $\beta_t\geq 1$ is an increasing sequence computed from $\mathcal A_1, a_1, x_1, \cdots, A_{t-1}, a_{t-1}, x_{t-1}$. Suppose also that for fixed $n$ and $\delta$, the choice of $\beta_t$ makes $\mathcal \{\mathcal C_t\}_{t\in [n]}$ form a uniform \footnote{The reason why one needs uniform confidence sets is because the algorithm is built adaptively so that estimations at different steps are different.} $(1-\delta)$-confidence set:
+\begin{align}
+\P(\t\in\cap_{t=1}^n\mathcal C_t)\geq 1-\delta.\label{sl:9}
+\end{align} 
+Practicality of \eqref{sl:9} will be justified in a moment. A version of the UCB algorithm for stochastic linear bandits can then be described as follows:
+\begin{algorithm}
+\DontPrintSemicolon
+ \KwIn{Action set $\mathcal A_t$, $\delta$ and $\lambda$.}
+ \KwOut{ $\{a_t\}_{t\in [n]}.$}
+ \textbf{Initialization}: $t=1$, $V_1(\lambda) = \lambda I$ and $a_1\in\mathcal A_1$.\\
+ \While{$t\leq n$}{
+ \begin{itemize}
+\item $\hat{\t}_{t+1} = V^{-1}_{t}(\lambda)A_{t}^T(x_1, \cdots, x_{t})^T$;
+\item $\beta_{t+1}=\beta_{t+1}(\mathcal A_1, a_1, x_1, \cdots, A_{t}, a_{t}, x_{t})$;
+\item $\mathcal C_{t+1} = \{z\in\R^d: ||z-\hat{\t}_{t+1}||^2_{V_{t}(\lambda)}\leq\beta_{t+1}\}$;
+\item $a_{t+1} \in \argmax_{a\in\mathcal A_{t+1}}\sup_{z\in\mathcal C_{t+1}}\langle z, a\rangle$;
+\item $V_{t+1}(\lambda) = V_{t}(\lambda)+a_{t+1}a_{t+1}^T$; 
+\item $t = t +1$. 
+\end{itemize}
+}
+\caption{UCB algorithm for stochastic linear bandits (LinUCB).} 
+\label{alg:sl-UCB}
+\end{algorithm}
+
+Algorithm \ref{alg:sl-UCB} is also known as Linear Reinforcement Learning (LinRel). Before discussing in detail how $\beta_t$'s are chosen, we give a general result on the asymptotic regret that Algorithm \ref{alg:sl-UCB} can achieve, as summarized in the following theorem:
+
+\begin{Th}
+Assume that for some $L>0$, 
+\begin{align}
+\sup_{a\in\cup_{t\in\N}\mathcal A_t}\left\{|\langle\t, a\rangle|, \frac{||a||_2}{L}\right\}\leq 1. \label{sl:10}
+\end{align}
+\end{Th}
+For convenience we also assume that $\mathcal A_t$ is closed. Then, with probability at least $1-\delta$, the pseudo-regret $\bar{R}_n=\sum_{t\in [n]}\sup_{a\in\mathcal A_t}\langle\t, a-a_t\rangle$ in Algorithm \ref{alg:sl-UCB} satisfies that
+\begin{align}
+\bar{R}_n\leq 2+\sqrt{8n\beta_n\log\left(\frac{\det V_n(\lambda)}{\det V_1(\lambda)}\right)}\leq 2+\sqrt{8dn\beta_n\log\left(\frac{d\lambda+nL^2}{d\lambda}\right)}. \label{sl:11}
+\end{align}
+\begin{proof}
+It suffices to check that \eqref{sl:11} holds on the event defined in \eqref{sl:9}. The assumptions in the theorem imply that $\mathcal A_t$ is compact thus there exists $z_t\in\mathcal C_t$ such that $\langle z_t, a_t\rangle = \sup_{z\in\mathcal C_t}\langle z, a_t\rangle$. Then,
+\begin{align*}
+\bar{R}_n = \sum_{t\in [n]}\sup_{a\in\mathcal A_t}\langle\t, a-a_t\rangle&\stackrel{\eqref{sl:10}}{\leq} 2+ \sum_{t=2}^n\min\left\{\underbrace{\left(\sup_{a\in\mathcal A_t}\langle\t, a\rangle-\langle z_t, a_t\rangle\right)}_{\leq 0 \ \text{conditional on}\ \eqref{sl:9}}+\langle z_t-\t, a_t\rangle, 2\right\}\\
+&\stackrel{\eqref{sl:9}}{\leq} 2+2\sum_{t=2}^n \min\left\{\sqrt{\beta_n}||a_t||_{V^{-1}_{t-1}(\lambda)}, 1\right\}\\
+&\stackrel{\beta_n\geq 1}{\leq} 2+2\sqrt{n\beta_n\sum_{t=2}^n\min\left\{||a_t||^2_{V^{-1}_{t-1}(\lambda)}, 1\right\}}\\
+&\leq 2+2\sqrt{2n\beta_n\sum_{t=2}^n\log (1+||a_t||^2_{V^{-1}_{t-1}})},
+\end{align*} 
+where the last step uses the inequality $\min\{1, u\}\leq 2\log(1+u)$ for $u\geq 0$. Since $V_t$ is obtained from $V_{t-1}$ through a rank-1 update, it is easy to check that $\prod_{t=2}^n (1+||a_t||^2_{V^{-1}_{t-1}})=\frac{\det V_n(\lambda)}{\det V_1(\lambda)}$. Plugging this into the above estimate completes the proof of the first part in \eqref{sl:11}. The second part follows immediately by noting that $\det V_n(\lambda)\leq (\frac{1}{d}\text{tr}(V_n(\lambda)))^d\leq (\frac{d\lambda + nL^2}{d})^d$.
+\end{proof}
+\begin{Rem}
+The constant $2$ comes from exploring the first action arbitrarily. It does not affect the asymptotic result and will be omitted later for convenience. 
+\end{Rem}
+\begin{Rem}
+It can be seen from the above proof that how $\t$ is estimated at each step does not really matter, as long as the confidence set is weighted by $V_{t-1}$ and centered at the estimation. One may use other reasonable estimators in both theoretical analysis and practice, see section \ref{sec:olp}. 
+\end{Rem}
+
+We next give two ways of finding valid $\beta_t$'s to achieve \eqref{sl:9}, both of which used the maximal inequality for self-normalized martingales. 
+
+\subsubsection{Laplace's method}
+
+Define $S_t = A_{t}^T(\eta_1, \cdots, \eta_t)^T$. Note that for $t\in [n]$, 
+\begin{align}
+||\hat{\t}_t -\t||_{V_{t-1}(\lambda)}&=\langle V^{-1}_{t-1}(\lambda)(\lambda\t + S_{t-1}), \lambda\t + S_{t-1}\rangle^{1/2}\nonumber\\
+& = ||\lambda\t + S_{t-1} ||_{V^{-1}_{t-1}(\lambda)}\leq  \lambda ||\t||_{V^{-1}_{t-1}(\lambda)} + ||S_{t-1} ||_{V^{-1}_{t-1}(\lambda)}\nonumber\\
+&\stackrel{V^{-1}_{t-1}(\lambda)\preccurlyeq\lambda^{-1}I}{\leq} \sqrt{\lambda} ||\t||_2 + ||S_{t-1} ||_{V^{-1}_{t-1}(\lambda)}\label{sl:12}, 
+\end{align}
+Therefore it suffices to obtain a high-probability bound for $||S_{t-1} ||_{V^{-1}_{t-1}(\lambda)}$. The weight factor  is given by the inverse of $V_{t-1}(\lambda)$ which can be difficult to analyze. To get around we rewrite $\frac{1}{2}||S_t||^2_{V^{-1}_{t}(\lambda)}$ using the Legendre transform:
+\begin{align*}
+\frac{1}{2}||S_t ||^2_{V^{-1}_{t}(\lambda)} = \max_{x\in\R^d}\left(\langle x, S_t\rangle - \frac{1}{2}\langle x, x\rangle_{V_t(\lambda)}\right).
+\end{align*}
+Thanks to the subgaussian assumption on the noise, for fixed $x$, $M_t(x)=e^{\langle x, S_t\rangle - \frac{1}{2}\langle x, x\rangle_{V_t(\lambda)}}$ is a non-negative supermartingale started at $e^{-\lambda ||x||_2^2/2}$. This raises hope for a uniform bound in $t$ (as desired in \eqref{sl:9}) by appealing to the maximal inequality. However, there is an extra maximum over $x$ which needs to be addressed first. For this we use a technique called self-normalization. Self-normalization is similar to the Laplace's method in asymptotic analysis.  
+Note that $||\lambda\t + S_{t-1} ||_{V^{-1}_{t-1}(\lambda)}$ grows to infinity as $t\to\infty$ (otherwise there is no need to do the analysis here!).  For large $t$, if one wants to understand $\max_{x\in\R^d}\log M_t(x)$, one may study $\bar{M}(x):=\log\int_{x\in\R^d}M_t(x)p(x)dx$ instead, where $p(x)$ is some finite-measure whose support contains $\argmax_{x\in\R^d} M_t(x)$. 
+On the other hand, if $p(x)$ is a probability measure, averaging over $x$ preserves the martingale property so that $\bar{M}(t)$ is also a non-negative supermatingale. Take $p(x)$ as a gaussian measure on $\R^d$ with covariance matrix $\lambda^{-1} I$. Then,
+\begin{align*}
+\bar{M}_t = \left(\frac{\lambda^d}{\det (\lambda I+V_t(\lambda))}\right)^{1/2}e^{\frac{1}{2}||S_t||^2_{(\lambda I+V_t(\lambda))^{-1}}}\geq  \left(\frac{\lambda^d}{\det (2V_t(\lambda))}\right)^{1/2}e^{\frac{1}{4}||S_t||^2_{V^{-1}_t(\lambda)}}.
+\end{align*}
+By Doob's maximal inequality for non-negative supermartingales, 
+\begin{align*}
+&\P\left(\sup_{t\in\N}||S_t||_{V^{-1}_t(\lambda)}\geq 2\sqrt{2\log\left(\frac{1}{\delta}\right)+\log\left(\frac{\det V_t(\lambda)}{\lambda^d}\right)}\right)\\
+\leq&\ \P\left(\sup_{t\in\N}\log\bar{M}_t\geq\log\left(\frac{1}{2^{d/2}\delta}\right)\right) = \P\left(\sup_{t\in\N}\bar{M}_t\geq \frac{1}{2^{d/2}\delta}\right)\leq 2^{d/2}\delta\E[\bar{M}_0]=\delta. 
+\end{align*}
+This together with \eqref{sl:12} implies that $\beta_t$ in \eqref{sl:9} can be chosen as 
+\begin{align}
+\sqrt{\beta_t} &= \sqrt{\lambda}||\t||_2+2\sqrt{2\log\left(\frac{1}{\delta}\right)+\log\left(\frac{\det V_t(\lambda)}{\lambda^d}\right)}\nonumber\\
+&\leq\sqrt{\lambda}||\t||_2+2\sqrt{2\log\left(\frac{1}{\delta}\right)+d\log\left(\frac{d\lambda+nL^2}{d\lambda}\right)}\label{sl:13}.
+\end{align}
+Assuming $||\t||_2\leq\mathcal O(\sqrt{d})$, plugging \eqref{sl:13} into \eqref{sl:11} and integrates the tail probability yields that 
+\begin{align*}
+R_n = \mathcal O \left(d\sqrt{n}\log (nL)\right).
+\end{align*}
+
+\subsubsection{Online learning prediction}\label{sec:olp}
+
+Algorithm \ref{alg:sl-UCB} (with $\hat{\t}_t$ being treated as a general estimator) is closely related to the problem of online learning prediction. 
+In online learning prediction, given an action, the learner predicts the reward using some predictor built from the history before observing the reward. 
+The true reward is then fed back to the learner to update the predictor. 
+In the following we will use $\hat{x}_t$ as the predicted reward at time $t$, with its accuracy is measured by the cumulative squared-loss $\sum_{t\in [n]}(\hat{x}_t-x_t)^2$. 
+In Algorithm \ref{alg:sl-UCB}, one still has the predictor beforehand. What makes it different is the goal of learning. One needs to decide him/herself which action to play and the way how this is done is by computing multiple predicted values using appropriate confidence sets. 
+
+In the linear stochastic bandits, the best theoretic predictor is given by the expected reward function. For any predictor $\hat{x}_t$, it is meaningful to define the regret of $\hat{x}_t$ relative to a linear predictor $z\in\R^d$:
+\begin{align*}
+\rho_n(z) = \sum_{t\in [n]}(\hat{x}_t-x_t)^2-\sum_{t\in [n]}(\langle z, a_t\rangle-x_t)^2,
+\end{align*}
+where $a_t$ are given (either by a policy or some mysterious person). For any prior knowledge on $\t$ such that $\t\in\Theta\subset\R^d$, we say that the learner enjoys guarantee $B_n$\footnote{$B_n$ is a random quantity depending on data.} on $\Theta$ if $\sup_{z\in\Theta}\rho_n(z)\leq B_n$. As we will see, $B_n$ plays a crucial role in our construction of confidence sets, and allows some side-information on $\Theta$ to be incorporated.  
+
+From now on we assume that a predictor $\hat{x}_t$ is given to estimate the reward. For example, taking $\hat{x}_t (\cdot)= \langle\hat{\t}_t, \cdot\rangle$ recovers the one in Algorithm \ref{alg:sl-UCB}. Since the confidence sets ask for an estimate for the mean reward, for any sequence of actions $\{a_t\}_{t\in [n]}$, we consider $Q_n := \sum_{t\in [n]}(\hat{x}_t-\langle\t, a_t\rangle)^2$. Using the Cosine theorem, it is easy to check that 
+\begin{align*}
+Q_n&=\rho(\t)+2\sum_{t\in [n]}\eta_t(\hat{x}_t-\langle\t, a_t\rangle)\leq B_n+2\underbrace{\sum_{t\in [n]}\eta_t(\hat{x}_t-\langle\t, a_t\rangle)}_{\texttt{m}_n}.
+\end{align*}
+To further bound $Q_n$ uniformly for $n\in\N$, observe that $e^{x\texttt{m}_t-\frac{x^2}{2}Q_t}$ is a non-negative supermartingale for every $x\in\R$. Using a similar self-normalization trick as in the previous analysis and setting $x = 1$ yields that 
+\begin{align}
+\P\left(\forall t\in\N \ \text{s.t.}\  |\texttt{m}_t|\leq\sqrt{(1+Q_t)\log\left(\frac{1+Q_t}{\delta^2}\right)} \right)\geq 1-\delta. \label{sl:14}
+\end{align}
+Conditional on the event defined in \eqref{sl:14}, for every $t\in\N$, 
+\begin{align*}
+Q_t\leq B_t + 2\sqrt{(1+Q_t)\log\left(\frac{1+Q_t}{\delta^2}\right)},
+\end{align*}
+which implies
+\begin{align}
+Q_t\leq 1+2B_t+32\log\left(\frac{\sqrt{8}+\sqrt{1+B_t}}{\delta}\right).\label{sl:15}
+\end{align}
+Although \eqref{sl:15} is a confidence set, it is possible to be unbounded and does not fit into the form used in Algorithm \ref{alg:sl-UCB}. To solve this, we restrict the confidence sets to a ball $B(L)$ of radius $L$ using \eqref{sl:10} , then identify an estimator for $\t$ based on the given predictor $\hat{x}_t$ and derive a confidence set around it. Let $\tilde{\t}_t$ be the regularized least-squares solution for the predicted values:
+\begin{align*}
+\tilde{\t}_t = V_t^{-1}(\lambda)A_t^T\underbrace{\begin{pmatrix}
+\hat{x}_1\\
+\vdots\\
+\hat{x}_t
+\end{pmatrix}}_{\hat{X}_t}.
+\end{align*}
+We can then rewrite $Q_t+\lambda ||\t||_2^2$ as 
+\begin{align*}
+&||A_t\t-A_t\tilde{\t}_t+A_t\tilde{\t}_t-\hat{X}_t||_2^2 + \lambda ||\t||_2^2\\
+=&\  ||\t-\tilde\t_t||^2_{V_t(\lambda)} -\lambda ||\t-\tilde\t_t||_2^2 + ||A_t\tilde{\t}_t-\hat{X}_t||_2^2+2\langle\t-\tilde\t_t, \tilde\t_t\rangle_{V_t(\lambda)}-2\lambda \langle \t-\tilde \t_t, \tilde\t_t\rangle-2\langle\t-\tilde\t_t, \tilde\t_t\rangle_{V_t(\lambda)}+\lambda ||\t||_2^2\\
+=&\ ||\t-\tilde\t_t||^2_{V_t(\lambda)}+ ||A_t\tilde{\t}_t-\hat{X}_t||_2^2+\lambda ||\tilde\t_t||_2^2.
+\end{align*} 
+It is then clear that 
+\begin{align*}
+&\left\{z\in\R^d\cap B(L): Q_t\leq 1+2B_t+32\log\left(\frac{\sqrt{8}+\sqrt{1+B_t}}{\delta}\right) \right\}\\
+\subset&\ \left\{z\in\R^d: Q_t +\lambda ||z||_2^2\leq 1+2B_t+32\log\left(\frac{\sqrt{8}+\sqrt{1+B_t}}{\delta}\right) +\lambda L^2\right\}\\
+\subset&\ \underbrace{\left\{z\in\R^d: ||\t-\tilde\t_t||^2_{V_t(\lambda)}\leq \underbrace{1+2B_t+32\log\left(\frac{\sqrt{8}+\sqrt{1+B_t}}{\delta}\right)+\lambda L^2}_{\beta_{t+1}} \right\}}_{\mathcal C_{t+1}}. 
+\end{align*}
+This together with \eqref{sl:11} implies that 
+\begin{align*}
+R_n = \mathcal O \left(\sqrt{nd(\E[B_n]+L^2)\log(nL)}\right)\stackrel{\text{if}\ L=\mathcal O(1)}{=}\left(\sqrt{nd\E[B_n]\log(nL)}\right).
+\end{align*}
+If $\t$ is known to be $s$-sparse, we can take $\Theta = \{z\in\R^d: ||z||_0\leq s\}$. In this case, it can be shown that $\E[\beta_n] \lesssim s\log n$. Hence we have $R_n = \mathcal O \left(\sqrt{nds\log^2(nL)}\right)$.
+\begin{Rem}
+When building up the confidence sets in the sparsity case, one needs to know in advance the sparsity level, which determines the choice for $B_t$. 
+\end{Rem} 
+
+\subsection{Asymptotic instance lower bounds}
+We now discuss the inevitable regret for any learning strategy in stochastic linear bandits. As in Section \ref{sec1}, there are two directions to answer this question.  The first is to consider the minimax regret for fixed horizon $n$, which comes down to analyzing policies whose worst regret over a class of bandits is optimal. The idea for this approach is similar to the study of stochastic bandits. However, identifying the environments that are mutually incoherent for a given policy is more complicated due to the varying geometry of the action set. We shall not go into the details here. The take-away message is the conclusion: For various types of $\mathcal A$ (independent of $t$), the regret incurred by applying Algorithm \ref{alg:sl-UCB} is near-optimal (only differ by a log factor). From this perspective, optimistic algorithms are almost finite-time optimal. 
+
+The other way is to consider the asymptotic lower bound for the regret of a consistent policy over a class of environments.  In this case, one first fixes a bandit then sends $n$ to infinity. This approach provides a theoretical limit of learning in infinite horizon, yet it may obscure some humongous constants that often matter in practice. The main result we are going to introduce in this section quantifies the asymptotic lower bound for consistent policies. The bound, which is solved by an optimization problem, is achievable by a well-designed policy (not guaranteed as finite-time optimal so may not be useful in practice).  As a disturbing consequence, it can be shown that optimistic policies can be far from being asymptotically optimal. We will mainly follow the paper \cite{lattimore2016end}. 
+
+The following theorem shows that any suboptimal arm must be fully explored under any consistent policy. 
+
+\begin{Th}\label{sl:asym}
+Assume that $\mathcal A\subset\R^d$ is finite, independent of time and spans $\R^d$. Let $\t\in\R^d$ be the true parameter and $\{a_t\}_{t\in [n]}$ be a sequence of actions under a consistent policy over the complete environments $\R^d$. Suppose that there is a unique optimal action $a^*$ for $\t$. Define $\bar{G}_n = \E[\sum_{t\in [n]}a_ta_t^T]$. Then for any $a\in\mathcal A\setminus a^*$, 
+\begin{align}
+\limsup_{n\to\infty}\log n ||a||^2_{G_n^{-1}}\leq\frac{\Delta_a^2}{2}, \label{sl:16}
+\end{align} 
+where $\Delta_a = \langle\t, a^*-a\rangle$ is the suboptimality gap of $a$. 
+\end{Th}
+Note that the left-hand side of \eqref{sl:16} appears as the marginal error in the $(1-1/n)$-confidence interval of estimating $\langle\t, a\rangle$ by the least-squares estimator. In this sense we can conclude that $a$ is well-explored. 
+\begin{proof}
+We first note that $\bar{G}_n$ is invertible for sufficiently large $n$, otherwise some dimension has not been explored at all so that one can modify $\t$ to have linear regret. Let $\Delta = \min_{a\in\mathcal A\setminus a^*}\Delta_a$ and consider a new bandit defined by 
+\begin{align*}
+\t' = \t + \frac{\Delta_a + \e}{||a-a^*||^2_H}H(a-a^*),
+\end{align*}
+where $H$ is some positive semidefinite matrix with $||a-a^*||_H>0$, and $\e\in (0, \Delta]$. It is easy to check that action $a$ under $\t'$ is better than $\t$ by $\e$. Therefore, applying the Bretagnolle-Huber inequality on the event that $T_a(n):=\sum_{t\in [n]}\mathbb I_{a_t = a}\geq n/2$, with the measures being the induced measures under $\t$ and $\t'$, respectively, 
+\begin{align*}
+c_p n^p\stackrel{\text{consistency}}{\geq} R_{n, \t}+R_{n, \t'} &\stackrel{\Delta_a\geq\e}{\geq}\frac{n}{2}\e\left(\P_\t\left(T_a(n)>\frac{n}{2}\right)+\P_{\t'}\left(T_a(n)\leq\frac{n}{2}\right)\right)\\
+&\ \ \geq \frac{n}{4}\e e^{-\frac{1}{2}\mathsf D_{KL}(\t, \t')} =  \frac{n}{4}\e e^{-\frac{1}{2}||\t-\t'||^2_{\bar{G}_n}}\\
+&\ \ =\frac{n}{4}\e e^{-\frac{1}{2}\frac{(\Delta_a+\e)^2}{||a-a^*||_H^4}||a-a^*||^2_{H\bar{G}_nH}},
+\end{align*}
+for any $p>0$ and $c_p>0$ only depends on $p$. 
+Rearranging terms, setting $p\to 0$ first then $\e\to 0$ yields that
+\begin{align}
+\liminf_{n\to\infty}\frac{\Delta_a^2 ||a-a^*||^2_{H\bar{G}_nH}}{2\log n||a-a^*||_H^4}\geq 1. \label{sl:17}
+\end{align}
+For simplicity assume that $\log n ||a-a^*||_{G_n^{-1}}^2$ converges to $c\in [0, \infty]$ (so that $\lim =\limsup$), otherwise consider any convergent subsequence.  Take $H$ to be a limiting point of $G_n^{-1}/||G^{-1}_n||$. Thanks to the consistency and the unique optimality assumptions, $H$ is only degenerate in direction $a^*$, i.e., $Ha^*=0$ and $||a-a^*||_H = ||a||^2_H>0$.  One can check this by applying the Sherman-Morrison formula to the matrix $K+n a^*{a^*}^T$, where $K$ satisfies $||K||\leq c_pn^p$ for $p>0$. This step ensures that the construction of $\t'$ is valid. On the other hand, as $n\to\infty$,
+\begin{align*}
+\frac{||a-a^*||^2_{H\bar{G}_nH}}{||a-a^*||^2_{H/||\bar{G}^{-1}_n||}} & = \frac{||a-a^*||^2_{\textcolor{black}{H\bar{G}_n/||\bar{G}_n||}H}}{||a-a^*||^2_{\textcolor{black}{H\bar{G}_n/||\bar{G}_n||}\bar{G}^{-1}_n/||\bar{G}^{-1}_n||}}\to 1\\
+\frac{||\bar{G}^{-1}_n||\cdot ||a-a^*||^2_{H}}{||a-a^*||^2_{\bar{G}^{-1}_n}} &= \frac{||a-a^*||^2_{H}}{||a-a^*||^2_{\bar{G}^{-1}_n/||\bar{G}^{-1}_n||}}\to 1\\
+\frac{||a||^2_{\bar{G}_n^{-1}}}{||a-a^*||^2_{\bar{G}_n^{-1}}}&\to\frac{||a||^2_{H}}{||a-a^*||^2_{H}} = \frac{||a-a^*||^2_{H}}{||a-a^*||^2_{H}}=1.
+\end{align*}
+Plugging these back into \eqref{sl:17} yields the desired result. 
+\end{proof}
+We now see how \eqref{sl:16} implies a lower bound on the asymptotic regret $R_{n,\t}$. First note that
+\begin{align*}
+R_{n, \t} = \sum_{a\in\mathcal A\setminus a^*}\Delta_a\E[T_a(n)].
+\end{align*}
+On the other hand, $\bar{G}_n = \sum_{a\in\mathcal A}\E[T_a(n)]aa^T$ needs to satisfy \eqref{sl:16} for every $a\in\mathcal A\setminus a^*$. Equivalently, for $\e>0$ and sufficiently large $n$, $\log n ||a||^2_{\bar{G}_n^{-1}}\leq\Delta_a^2(1+\e)/2$. If we let $\alpha_a(n) = (\log n)^{-1} \E[T_a(n)]$ and $H_n = (\log n)^{-1}\bar{G}_n$. Then, for sufficiently large $n$,
+\begin{align*}
+\frac{R_{n, \t}}{\log n} \geq\inf_{\alpha}\sum_{a\in\mathcal A\setminus a^*}\Delta_a\alpha_a(n),
+\end{align*}
+with $\alpha$ satisfying
+\begin{align*}
+||a||^2_{H_n^{-1}}&\leq \frac{1+\e}{2}\Delta_a^2\ \ \ \ \ \forall a\in\mathcal A\setminus a^*\\
+\sum_{a\in\mathcal A}\alpha_a(n) &= \frac{n}{\log n}.  
+\end{align*} 
+With further relaxation and setting $\e\to 0$ gives
+\begin{align*}
+\limsup_{n\to\infty}\frac{R_{n,\t}}{\log n}\geq\inf_{\textcolor{blue}{\substack{\alpha\in [0,\infty]^{|\mathcal A|},\  H = \sum_{a\in\mathcal A}\alpha_a aa^T\\ \max_{a\neq a^*}2\Delta_a^{-2}||a||^2_{H^{-1}}\leq 1}}}\sum_{a\in\mathcal A\setminus a^*}\Delta_a\alpha_a. 
+\end{align*}
+It has been shown in \cite{lattimore2016end} that the above equality is achievable. The first step in such an algorithm is to select a small subset $\mathcal B$ of $\mathcal A$ so that information of all actions is contained inside. This can be done by taking  $\mathcal B$ as a barycentric spanner of $\mathcal A$. Secondly, the algorithm explores $\mathcal B$ to obtain a rough estimate on the suboptimality gaps of all actions. The estimated gaps are then used to approximately solve for the pull counts for each suboptimal actions. If an anomaly is detected that indicates the estimated gaps are inaccurate, the algorithm then switches to a recovery phase where it plays UCB instead. 
+
+As a consequence of Theorem \ref{sl:asym}, consistent optimistic algorithms are not asymptotically optimal. An intuitive explanation is that optimistic algorithms no longer explore actions which are identified suboptimal, and this sometimes takes fewer steps than getting a good estimation for them. A rigorous justification is as follows:
+
+\medskip
+
+\textbf{Example:}\ 
+Consider a stochastic linear bandit with $\t=e_1\in\R^2$ and $\mathcal A=\{e_1, e_2, e_3:=(1-\e)e_1+\gamma\e e_2\}$, where $e_{1,2}$ are canonical bases of $\R^2$, $\e>0$ and $\gamma>1$. A consistent UCB algorithm will no longer play $\e_2$ once identifying it is suboptimal (this process should not take long since $e_1\perp e_2$), but later on it will surely hesitate for a long time between $e_1$ and $e_3$ (since $e_1$ and $e_3$ are almost parallel). An asymptotically optimal policy, however, will play $e_2$ longer than seem necessary. This sacrifice will help better decipher the optimal action in $e_1$ and $e_3$. In fact, it can be shown in this case that an asymptotically optimal policy has regret $R_{n,\t}=\mathcal O(\log n)$. However, for the UCB, assuming that the confidence set $\mathcal C_t$ is given by \eqref{sl:13} with $\delta = n^{-1}$, 
+\begin{align*}
+\t\in\mathcal C_t = \{z\in\R^2, ||z-\hat{\t}_t||^2_{V_{t-1}(0)}\leq c\log n\},
+\end{align*}
+where $c$ is some constant. Then,
+\begin{align*}
+\max_{z\in\mathcal C_t}\langle e_2, z\rangle=\max_{z\in\mathcal C_t}\langle e_2, z-\t\rangle\leq 2||e_2||_{V^{-1}_{t-1}}\sqrt{c\log n}< 1\leq \max_{z\in\mathcal C_t}\langle e_1, z\rangle 
+\end{align*}
+if $||e_2||^2_{V_{t-1}^{-1}}\leq (4c\log n)^{-1}$. A sufficient condition for this is $T_{e_2}(t-1)> 4c\log n$. So conditional on $\mathcal C_t$, $T_{e_2}(t-1)\leq 4c\log n + 1$. Meanwhile, $T_{e_2}(t-1)$ is bounded by $n$ outside $\mathcal C_t$. Therefore,  
+\begin{align*}
+\E[T_{e_2}(n)]\leq 4c\log n + 2. 
+\end{align*}
+Equivalently, 
+\begin{align*}
+\alpha_{e_2}\leq 4c. 
+\end{align*}
+Yet a consistent policy requires $e_2$ be explored to a given extent. If this is not achieved by simply pulling $e_2$ a number of times,  it must be compensated by pulling other actions which contain information about $e_2$. In our case, this means playing $e_3$ an extra number of times. However, $e_3$ contains only tangential information of $e_2$ so that it must be chosen extensively. Indeed, the consistency assumption implies that 
+\begin{align*}
+\alpha_{e_3}\e^2+\alpha_{e_2}\geq  2\gamma^2, 
+\end{align*}
+which further simplifies to $\alpha_{e_3}\geq (2\gamma^2-4c)\e^{-2}$. Hence, if $\gamma>\sqrt{2c}$, then the regret $R_n$ satisfies $R_n = \mathcal O(\e^{-1}\log n)$. Since $\e$ can be arbitrarily small, the regret incurred by the consistent UCB can be any worse than the regret of the best consistent policy. 
 
 
 
 
 
-
-
-
-
-
-
- 
 \printbibliography
  
  
