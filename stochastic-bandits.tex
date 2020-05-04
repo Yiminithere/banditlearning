@@ -1,40 +1,35 @@
 \documentclass[10pt,a4article]{amsart}
-%\documentclass[10pt]{paper}
-%\documentclass[10pt,a4paper,twoside]{paper}
-%\usepackage{amsfonts}
-\usepackage{amsthm}
+\usepackage{amsmath,amsthm,verbatim,amssymb,amsfonts,amscd,graphicx}
+\usepackage{mathtools}
 \usepackage[ruled,vlined]{algorithm2e}
-\usepackage{amsmath}
-\usepackage{amscd}
 \usepackage[latin2]{inputenc}
 \usepackage{t1enc}
 \usepackage[mathscr]{eucal}
 \usepackage{indentfirst}
-\usepackage{graphicx}
 \usepackage{graphics}
 \usepackage{pict2e}
 \usepackage{epic}
 \numberwithin{equation}{section}
 \usepackage[margin=2.9cm]{geometry}
 \usepackage{epstopdf}
-\usepackage{amsmath,amsthm,verbatim,amssymb,amsfonts,amscd, graphicx}
-\usepackage{mathtools}
 \usepackage[dvipsnames]{xcolor}
+\usepackage{CJK}
+\usepackage[colorlinks, linkcolor = purple, citecolor=blue]{hyperref}
+
 
 \usepackage[backend=biber,date=year,giveninits=true,sorting=nyt,style=alphabetic,natbib=true,maxcitenames=2,maxbibnames=10,url=false,doi=true,backref=false]{biblatex}
+
 \addbibresource{sb.bib}
+
 
 \renewbibmacro{in:}{\ifentrytype{article}{}{\printtext{\bibstring{in}\intitlepunct}}}
 \renewcommand*{\bibfont}{\small}
 
-\DeclareMathOperator{\sgn}{sgn}
 
 \newcommand{\note}[1]{{\leavevmode\color{BrickRed}{#1}}}
 
  
-\usepackage[colorlinks,linkcolor = purple, citecolor=blue]{hyperref} 
-
-
+ 
 
 \theoremstyle{plain}
 \newtheorem{Th}{Theorem}
@@ -42,18 +37,14 @@
 \newtheorem{Cor}[Th]{Corollary}
 \newtheorem{Prop}[Th]{Proposition}
 
- \theoremstyle{definition}
+
+\theoremstyle{definition}
 \newtheorem{Def}[Th]{Definition}
 \newtheorem{Conj}[Th]{Conjecture}
 \newtheorem{Rem}[Th]{Remark}
 \newtheorem{?}[Th]{Problem}
 \newtheorem{Ex}[Th]{Example}
 
-
-\newcommand{\im}{\operatorname{im}}
-\newcommand{\Hom}{{\rm{Hom}}}
-\newcommand{\diam}{{\rm{diam}}}
-\newcommand{\ovl}{\overline}
 
 \def\R{{\mathbb R}}
 \def\Q{{\mathbb Q}}
@@ -95,6 +86,15 @@
 \DeclareMathOperator*{\argmin}{arg\,min}
 \usepackage{filecontents}
 
+\usepackage{CJK}
+\usepackage[colorlinks]{hyperref}
+
+\usepackage{mathtools}
+\usepackage{commath}
+\usepackage[dvipsnames]{xcolor}
+
+
+
 
 
 \begin{document}
@@ -104,8 +104,16 @@
 \author{Yiming Xu}
 \maketitle
 
+These notes are based on the book \cite{lattimore2018bandit}. The purpose is mainly to assist my own understanding of the material, but also keeps a record for what has been covered in the reading course. Any imprecision or mistakes are due to my own. 
 
-These notes are based on the book \cite{lattimore2018bandit}. The purpose is mainly to assist my own understanding of the material, but also keeps a record for what has been covered in the reading course. Any imprecision or mistakes should be due to my own. 
+\bigskip
+
+\bigskip
+
+\bigskip
+
+\tableofcontents
+\newpage
 
 \section{Stochastic bandits}\label{sec1}
 
@@ -784,10 +792,294 @@ Yet a consistent policy requires $e_2$ be explored to a given extent. If this is
 which further simplifies to $\alpha_{e_3}\geq (2\gamma^2-4c)\e^{-2}$. Hence, if $\gamma>\sqrt{2c}$, then the regret $R_n$ satisfies $R_n = \mathcal O(\e^{-1}\log n)$. Since $\e$ can be arbitrarily small, the regret incurred by the consistent UCB can be any worse than the regret of the best consistent policy. 
 
 
+\section{Adversarial linear bandits}
+
+\subsection{Problem set-up}
+We consider a different type of bandit environment called the adversarial bandit. We will first introduce the basic set-up of the problem as well as an expert version of it, then link them to a more general model called the adversarial linear bandit. Since there is a deep connection between various algorithms for adversarial bandit learning and regularized empirical risk minimization in online learning, we shall put a detailed discussion on the topic to a later stage.  
+
+Let us begin by some definitions. A $k$-armed adversarial bandit is defined as $k$ deterministic sequences $\{x_{ti}\}_{t\in [n]}$, where $i\in [k]$. For simplicity we assume that $x_{ti}\in [0,1]$ representing the loss incurred by playing arm $i$ at $t$. Loss and rewards are transferable by considering $1-x_{ti}$. The key difference, as opposed to the stochastic bandit, is that there is no randomness in the environment. This implies that the learner needs to adopt a non-deterministic policy in order to gain a non-trivial regret, as in the minimax sense. To see it, for any policy $\pi$, the regret in the environment $\{x_{ti}\}_{t\in [n]}$ is given by
+\begin{align*}
+R_n(\pi) = \E\left[\sum_{t\in [n]}x_{t\pi_t}-\min_{i\in [k]}\sum_{t\in [n]}x_{ti}\right],
+\end{align*}
+where the expectation is taken with respect to $\pi$. If $\pi$ is deterministic conditional on the history, then we can construct an environment sequentially (our choice of construction at present will not affect the choices of the policy before) by defining $x_{1i}=0$ and for $t\geq 1$, $x_{ti}=\mathbb I_{i=\pi_t}$. By our construction,
+\begin{align*}
+\sum_{i\in [k]}\sum_{t\in [k]}x_{ti} = n-1,
+\end{align*}
+implying that $\min_{i\in [k]}\sum_{t\in [n]}x_{ti}\leq\frac{n-1}{k}$. The regret in the above environment is thus lower bounded by $(1-\frac{1}{k})(n-1)$. Hence, the minimax regret for the set of deterministic policies $\mathcal V_d$ is lower bounded by 
+\begin{align}
+\min_{\pi\in\mathcal V_d}\max_{\{x_{ti}\}\in [0,1]^{nk}}R_n(\pi)\geq \left(1-\frac{1}{k}\right)(n-1).\label{al:ct}
+\end{align}
+This suggests the necessity to randomize $\pi$ to achieve sub-linear regret in $n$. That is, at step $t$, one selects a distribution $P_t$ on $[k]$ based on the past observations, then samples $\pi_t\sim P_t$. As we will see, with proper choice of $P_t$, the regret grows sub-linearly in $n$.  
+
+A similar problem to the adversarial bandit is bandits with expert advice. In this case, instead of comparing the learner to fixed arms, one compares to the advice of experts. Let $[M]$ denote the group of experts. Every $m\in [M]$ is associated with a sequence of distributions on $[k]$, denoted by $\{E_{tm}\}_{t\in [n]}$. $E_{tm}$ are deterministic and non-interactive\footnote{Since we are adopting a randomized policy, the experts' advice should not depend on the results of the policy.} with $\pi$. The regret is defined by
+\begin{align*}
+R_n(\pi) = \E\left[\sum_{t\in [n]}x_{t\pi_t}-\min_{m\in [M]}\sum_{t\in [n]}E^T_{tm}x_{t}\right],
+\end{align*}
+where $x_t = (x_{t1}, \cdots, x_{tk})^T$. The adversarial bandit can be viewed as a special case of the expert-led bandit with $M=k$ and $E_{tm} = \delta_m$. Therefore, a reasonable strategy $\pi$ puts a distribution $P_t$ on the experts at step $t$, and samples $\pi_t$ according to $Q_t:=\sum_{m\in [M]}P_t(m)E_{tm}$. The details of this algorithm will be analyzed together with the Exp3 algorithm in the next section. 
+
+We now introduce the set-up of adversarial linear bandits, which generalizes adversarial bandits to a wider class of environment structures. This is similar to the stochastic linear bandits discussed in the previous chapter. Let $\mathcal A\subset\R^d$ be an action set. For the moment assume that $\mathcal A$ is finite and spans $\R^d$.  An adversarial linear bandit is a sequence of deterministic parameter vectors $\{y_t\}_{t\in [n]}\subset\mathcal A'$, where  
+\begin{align*}
+\mathcal A' = \left\{x\in\R^d, \sup_{a\in\mathcal A}|\langle x, a\rangle|\leq 1\right\}. 
+\end{align*}
+Taking $d = k$ and $\mathcal A=\{e_i\}_{i\in [d]}$ recovers the $k$-armed adversarial bandit (with a slightly different loss range). For simplicity, let $a_t$ be the arm chosen in round $t$ under a policy $\pi$. The regret in this case is defined by 
+\begin{align}
+R_n = \E\left[\sum_{t\in [n]}\langle a_t, y_t\rangle-\min_{a\in\mathcal A}\langle a, y_t\rangle\right].\label{al:1}
+\end{align}
+In the rest of this chapter we will be focused on discussing algorithms with provable sub-linear bounds for \eqref{al:1}. 
 
 
+\subsection{Algorithms}
 
+The first algorithm we are going to analyze in this section is called Exp3, which is the abbreviation of \textbf{Exp}onential-weight algorithm for \textbf{Exp}loration and \textbf{Exp}loitation. Exp3 consists of two steps which are summarized as follows: At step $t$, we
+\begin{enumerate}
+\item estimate the environment parameters $y_s$ before time $t$; and 
+\item build a sampling distribution weighted by the estimated cumulative loss for each $a\in\mathcal A$. 
+\end{enumerate}
+This description tells us that past observations play an important role in future decision making. Based on the estimated cumulative loss, one can naively select the action giving the best performance (which becomes a deterministic policy afterwards!). However, such an approach can be unstable due to the adversarial nature of the problem, as suggested in \eqref{al:ct}. On the other hand, following the leader simply means no more exploration in the future, which may cause trouble if previous exploration is not sufficient. What step (2) does is essentially smoothing out the hard-thresholding decision making process. As we will see later, this is equivalent to minimizing the empirical risk function with appropriate regularization.  
+
+Let $p$ be a probability distribution on $\mathcal A$. We now state the Exp3 algorithm:
+\begin{algorithm}
+\DontPrintSemicolon
+ \KwIn{Action set $\mathcal A$ and mixing parameter $\gamma\in (0,1)$.}
+ \KwOut{ $\{a_t\}_{t\in [n]}.$}
+ \textbf{Initialization}: $t=1$, $\eta>0$, $a_1\sim\mu$ and $P_1=p$.\\
+ \While{$t\leq n$}{
+ \begin{itemize}
+\item \textcolor{brown}{(Importance-weighted estimator)} $\hat{Y}_t = \langle a_t, y_t\rangle\big(\overbrace{\sum_{a\in\mathcal A}P_{t}(a)aa^T}^{Q(P_t)}\big)^{-1} a_t$; 
+\item $P_{t+1}=(1-\gamma)P'_{t+1}+\gamma p$, where $P'_{t+1}(a)\propto e^{-\eta\sum_{s=1}^t\langle a, \hat{Y}_s\rangle}$;
+\item $a_{t+1}\sim P_{t+1}$;
+\item $t = t +1$. 
+\end{itemize}
+}
+\caption{Exp3 algorithm for adversarial linear bandits.} 
+\label{alg:al-Exp3}
+\end{algorithm}
+\begin{Th}
+Suppose that $|\mathcal A|=k$. For carefully chosen $\gamma$ and $\eta$, the regret in Algorithm \ref{alg:al-Exp3} satisfies
+\begin{align*}
+R_n\leq\sqrt{8(g(p)+d)n\log k},
+\end{align*}
+where $g(p)=\max_{a\in\mathcal A}||a||^2_{Q^{-1}(p)}$. By Theorem \ref{KW}, there exists some $p$ such that $g(p)=d$. Hence,
+\begin{align*}
+R_n\leq 4\sqrt{dn\log k}
+\end{align*}
+\end{Th}
+\begin{proof}
+The proof is standard for exponential-weighting algorithms. Before we start, it is worth mentioning that exponential weights also arise in regularized empirical risk minimization. However, the algorithm here involves a mixing distribution which is indispensable, as will be detailed in a moment. 
+
+We first note that $\hat{Y}_t$ is an unbiased estimator for $y_t$, therefore $\langle a,y_t\rangle = \E[\langle a, \hat{Y}_t\rangle]$ for fixed $a\in\mathcal A$. The trick is to consider the partition functions given by the exponential weights:
+\begin{align*}
+W_t = \sum_{a\in\mathcal A}e^{-\eta\sum_{s=1}^t\langle a, \hat{Y}_s\rangle}.
+\end{align*}
+Define 
+\begin{align}
+\tilde{P}_t=\frac{P_t-\gamma p}{1-\gamma}.\label{al:2}
+\end{align}
+Note that for fixed $a\in\mathcal A$, 
+\begin{align*}
+-\eta\sum_{t\in [n]}\langle a, \hat{Y}_t\rangle\leq\log W_n\leq\sum_{t\in [n]}\log\frac{W_t}{W_{t-1}}+\log k.
+\end{align*}
+The term $\log\frac{W_t}{W_{t-1}}$ can be estimated explicitly:
+\begin{align*}
+\log\frac{W_t}{W_{t-1}}&=\log\left(\sum_{a\in\mathcal A}\tilde{P}_t(a)e^{-\eta\langle a, \hat{Y}_t\rangle}\right)\\
+&\stackrel{(*)}{\leq}\log\left(\sum_{a\in\mathcal A}\tilde{P}_t(a)(1-\eta\langle a, \hat{Y}_t\rangle+\eta^2 \langle a, \hat{Y}_t\rangle^2)\right)\\
+&\leq -\sum_{a\in\mathcal A}\eta\tilde{P}_t(a)\langle a, \hat{Y}_t\rangle+\sum_{a\in\mathcal A}\eta^2 \tilde{P}_t(a)\langle a, \hat{Y}_t\rangle^2,
+\end{align*}
+where for the $(*)$ we assumed that $\eta\langle a, \hat{Y}_s\rangle\geq -1$ and used that $e^x\leq 1+x+x^2$ when $x\leq 1$. Summing over $t$, replacing $\tilde{P}_t$ by \eqref{al:2} and taking expectation on both sides yields
+\begin{align*}
+R_n&\leq\frac{\log k}{\eta}+\gamma\E\left[\sum_{t\in [n]}\sum_{a\in\mathcal A}(p(a)-P_t(a))\langle a, \hat{Y}_t\rangle\right]+\frac{1}{1-\gamma}\E\left[\sum_{t\in [n]}\sum_{a\in\mathcal A}\eta P_t(a)\langle a, \hat{Y}_t\rangle^2\right]\\
+&\leq \frac{\log k}{\eta}+2\gamma n+\frac{\eta}{1-\gamma}\E\left[\sum_{t\in [n]}\sum_{a\in\mathcal A} P_t(a)\langle a, \hat{Y}_t\rangle^2\right]\\
+&= \frac{\log k}{\eta}+2\gamma n+\frac{\eta}{1-\gamma}\E\left[\sum_{t\in [n]}\sum_{a\in\mathcal A} P_t(a)\sum_{b\in\mathcal A}P_t(b)\langle a, Q^{-1}(P_t)\langle b, y_t\rangle b\rangle^2\right]\\
+&\stackrel{|\langle b, y_t\rangle|\leq 1}{\leq}\frac{\log k}{\eta}+2\gamma n+\frac{\eta}{1-\gamma}\E\left[\sum_{t\in [n]}\sum_{a\in\mathcal A} P_t(a)\langle a, Q^{-1}(P_t)a\rangle\right]\\
+&\leq \frac{\log k}{\eta}+2\gamma n+2\eta nd,
+\end{align*}
+where the last step follows by assuming $\gamma\leq\frac{1}{2}$. A sufficient condition for $\eta\langle a, \hat{Y}_s\rangle\geq -1$ is
+\begin{align*}
+\left|\eta\langle a, Q^{-1}(P_t)\langle a_t, y_t\rangle a_t\rangle\right|\leq 1,
+\end{align*}
+which can be further strengthened as $\left|\eta\langle a, Q^{-1}(P_t)a_t\rangle\right|\leq 1$. Since $Q(P_t)\succcurlyeq \gamma Q(p)$, the above condition holds if $\eta\leq \frac{\gamma}{g(p)}$. Taking the equality and $\gamma=\sqrt{\frac{g^2(p)\log k}{2ng(p)+2nd}}$ finishes the proof.   
+
+\end{proof}
+
+
+A few more things to add in this section:
+\begin{itemize}
+\item Extension to the continuous action set (including the $\e$-net argument as well as the continuous exponential weighted sampling). 
+
+\item Explain that the exploration is necessary, which is not in the $k$-armed case. 
+
+\item Give the similar result for expert-led bandits, and a few comments. 
+
+\end{itemize}
+
+
+\subsection{Online linear optimization}
+
+In this section, we consider the online linear optimization which is closely related to the adversarial bandit problems considered before. From now on we assume that $\mathcal A\subset\R^d$ is convex. Let $a_t$ be the action chosen at time $t$. For fixed environment $\{y_t\}_{t\in [n]}\subset \mathcal A'$ and action $a\in\mathcal A$, the relative regret to $a$ is defined by 
+\begin{align*}
+R_n(a) = \sum_{t\in [n]}\langle a_t-a, y_t\rangle. 
+\end{align*}
+The goal of online linear optimization can be roughly stated as finding a strategy so that $\max_{a\in\mathcal A}R_n(a)$ is asymptotically small. This problem is the same as the adversarial linear bandit provided that $y_t$ is explicitly given instead of the marginal $\langle a_t, y_t\rangle$. Nevertheless, such difference can be well addressed by a randomization trick, as observed in Algorithm \ref{alg:al-Exp3}. Therefore, in the rest of the section we will focus on the study of online linear optimization first, then pass the results directly to the adversarial linear bandit set-up. 
+
+A simple strategy for online linear optimization is to \emph{follow the leader} in the past. That is, the action at time $t$ is chosen as the action giving the best cumulative loss up to $t-1$: 
+\begin{align*}
+a_{t}=\argmin_{a\in\mathcal A}\sum_{s\in [t-1]}\langle a, y_s\rangle.
+\end{align*}
+This is also referred to as the empirical risk minimization. To see the rationale, note that
+\begin{align*}
+\sum_{t\in [n]}\langle a_{n+1}, y_t\rangle&=\sum_{t\in [n-1]}\langle a_{n+1}, y_t\rangle+\langle a_{n+1}, y_n\rangle\\
+&\geq \sum_{t\in [n-1]}\langle a_{n}, y_t\rangle+\langle a_{n+1}, y_n\rangle\\
+&\cdots\\
+&\geq \sum_{t\in [n]}\langle a_{t+1}, y_t\rangle,
+\end{align*}
+which implies that
+\begin{align*}
+\max_{a\in\mathcal A}R_{n}(a)\leq\sum_{t\in [n]}\langle a_{t+1}-a_t, y_t\rangle.
+\end{align*}
+This bound would be vacuous unless $a_{t+1}$ does not change dramatically from $a_t$\footnote{This usually depends on the geometry of the action set for which we assume nothing other than convexity.}. Indeed, consider the case when $d=1$, $\mathcal A = [-1,1]$ and $y_1=\frac{1}{2}$ and $y_t = (-1)^{t+1}$ for $t> 1$. It is easy to check that the follow the leader policy leads to $a_t = y_t$ for $t>1$, while the best policy in this case is $a_t = -y_t$ for $t>1$. The issue here is the same as the one we came across in \eqref{al:ct}. To mitigate the potential alternating phenomenon, we consider the regularized version of the follow the leader algorithm (FTRL). Let $F_1, \cdots, F_{n+1}$ be a sequence of convex functions. Define the action at time $t$ as 
+\begin{align}
+a_t=\argmin_{a\in\mathcal A}\underbrace{\sum_{s\in [t-1]}\langle a, y_s\rangle+F_t(a)}_{\Phi_t(a)}\label{al:3}
+\end{align}  
+The following theorem provides an upper bound for the relative regret in the FTRL:
+\begin{Th}\label{al:FTRL}
+Suppose that $a_t$ in \eqref{al:3} is well-defined for all $t\in [n]$. Then, for fixed $a\in\mathcal A$,  
+\begin{align*}
+R_n(a)&\leq \sum_{t\in [n]}\left(\langle a_t-a_{t+1},y_t\rangle-D_{F_t}(a_{t+1}, a_t)\right)\\
+&\ \ \ \ \ +F_{n+1}(a)-F_1(a_1)+\sum_{t=1}^n\left(F_t(a_{t+1})-F_{t+1}(a_{t+1})\right).
+\end{align*}
+where $D_{F_t}$ is the Bregman divergence defined by $D_{F_t}(x,y)=F(x)-F(y)-\nabla F(y)(x-y)$. Particularly, if $F_t = F/\eta_t$ and $\eta_t$ is decreasing with $\eta_n=\eta_{n+1}$, then
+\begin{align*}
+R_n(a)=\frac{F(a)-\min_{b\in\mathcal A}F(b)}{\eta_n}+\sum_{t\in [n]}\left(\langle a_t- a_{t+1}, y_t\rangle-\frac{D_F(a_{t+1}, a_t)}{\eta_t}\right).
+\end{align*}
+\end{Th}
+We remark that the divergence terms appearing in the above bounds will penalize the significant difference between $a_t$ and $a_{t+1}$. 
+\begin{proof}
+We begin by writing 
+\begin{align*}
+R_n(a)=\sum_{t\in [n]}\langle a_{t+1}-a, y_t\rangle + \sum_{t\in [n]}\langle a_{t}-a_{t+1}, y_t\rangle.
+\end{align*}
+The first part on the right-hand side can be bounded similarly as in the analysis of the follow-the-leader algorithm. The only difference is that the regularization term allows more accurate estimate for each iterative procedure by the divergence:
+\begin{align*}
+\sum_{t\in [n]}\langle a, y_t\rangle+F_{n+1}(a)&\geq\sum_{t\in [n]}\langle a_{n+1}, y_t\rangle+F_{n+1}(a_{n+1})\\
+& = \sum_{t\in [n-1]}\langle a_{n+1}, y_t\rangle+F_{n}(a_{n+1})+\langle a_{n+1}, y_n\rangle+F_{n+1}(a_{n+1})-F_{n}(a_{n+1})\\
+&\geq \sum_{t\in [n-1]}\langle a_{n}, y_t\rangle+F_{n}(a_{n})+D_{F_n}(a_{n+1}, a_n)+\langle a_{n+1}, y_n\rangle+F_{n+1}(a_{n+1})-F_{n}(a_{n+1})\\
+&\cdots\\
+&\geq \sum_{t\in [n]}\langle a_{t+1}, y_t\rangle+F_1(a_1)+\sum_{t\in [n]}D_{F_t}(a_{t+1}, a_t)+\sum_{t\in [n]}(F_{t+1}(a_{t+1})-F_{t}(a_{t+1})),
+\end{align*}
+where for the second inequality follows from the first-order optimality of $a_n$:
+$$\Phi_n(a_{n+1})-\Phi_n(a_n)\geq D_{\Phi_n}(a_{n+1}, a_n)=D_{F_n}(a_{n+1}, a_n).$$ Reorganizing terms yields the desired result.  
+\end{proof}
+One could also consider a local version of \eqref{al:3}. Here we assume that $F_t = F/\eta_t$ for some decreasing sequence $\infty=\eta_1>\eta_2\geq\cdots\geq\eta_{n+1}$. 
+\begin{align}
+a_t&=\argmin_{a\in\mathcal A}\langle a, y_{t-1}\rangle+D_{F_{t}}(a)\nonumber\\
+&=\argmin_{a\in\mathcal A}\underbrace{\eta_t\langle a, y_{t-1}\rangle}_{\text{gradient descent}}+\underbrace{D_{F}(a)}_{\text{regularization}}.\label{al:4}
+\end{align}
+\eqref{al:4} can be interpreted as a two-phase procedure which is often called the mirror descent (primal-dual): first map $a_{t-1}$ to the dual space via the mirror map $F$: $a_{t-1}\mapsto\nabla F(a_{t-1})$, take the gradient descent with step length $\eta_t$, and pull back to the point $\tilde{a}_t$ in the domain of $F$. Then obtain $a_t$ from $\tilde{a}_t$ by taking the Bregman divergence projection to the action set $\mathcal A$. The two steps can be summarized as follows under appropriate domain conditions, 
+\begin{align*}
+\tilde{a}_t &= \argmin_{a\in\text{Dom}(F)}\eta_t\langle a, y_{t-1}\rangle + D_F(a, a_{t-1})\\
+a_t &= \text{Proj}_{D_F, \mathcal A}(\tilde{a}_{t}).
+\end{align*}
+A similar bound for the regret holds true as in the case of FTRL:
+\begin{Th}\label{al:MR}
+Suppose that $a_t$ in \eqref{al:4} is well-defined for all $t\in [n]$. Then, for fixed $a\in\mathcal A$,  
+\begin{align*}
+R_n(a)&=\sum_{t\in [n]}\frac{D_F(a_t, \tilde{a}_{t+1})}{\eta_{t+1}}+\sum_{t\in [n]}\frac{D_F(a,a_t)-D(a,\tilde{a}_{t+1})}{\eta_{t+1}}\\
+&\leq \sum_{t\in [n]}\frac{D_F(a_t, \tilde{a}_{t+1})}{\eta_{t+1}}+\sum_{t\in [n]}D_F(a,a_t)\left(\frac{1}{\eta_{t+1}}-\frac{1}{\eta_t}\right).
+\end{align*}
+\begin{proof}
+The first-order optimality of $\tilde{a}_{t+1}$ implies that 
+\begin{align*}
+y_t = \frac{1}{\eta_{t+1}}\left(\nabla F(a_t)-\nabla F(\tilde{a}_{t+1})\right).
+\end{align*}
+Plugging into the definition of $R_n(a)$, 
+\begin{align*}
+R_n(a)=\sum_{t\in [n]}\langle a_t-a, y_t\rangle &= \sum_{t\in [n]}\frac{1}{\eta_{t+1}}\langle a_t-a, \nabla F(a_t)-\nabla F(\tilde{a}_{t+1})\rangle\\
+& = \sum_{t\in [n]}\frac{1}{\eta_{t+1}}\left(D_F(a_t, \tilde{a}_{t+1})+D_F(a, a_t)-D_F(a, \tilde{a}_{t+1})\right)\\
+& \leq \sum_{t\in [n]}\frac{D_F(a_t, \tilde{a}_{t+1})}{\eta_{t+1}}+\sum_{t\in [n]}\frac{D_F(a, a_t)-D_F(a, a_{t+1})}{\eta_{t+1}},
+\end{align*}
+where for the last step we used that $D_F(a, a_{t+1})\leq D_F(a, \tilde{a}_{t+1})$. Rearranging terms leads to the desired result. 
+\end{proof}
+\end{Th}
+Results in Theorem \ref{al:FTRL} and \ref{al:MR} can be easily modified to apply to the randomized versions of the algorithms. Indeed, as in adversarial linear bandits, suppose that one can estimate $y_s$ by some unbiased estimator $\hat{Y}_{s}$.  The decision at $t$ should be $a_t=\argmin_{a\in\mathcal A}\sum_{s\in [t-1]}\langle a, \hat{Y}_s\rangle+F_t(a):=a_t^*$ or $a_{t}=\argmin_{a\in\mathcal A}\langle a, \hat{Y}_{t-1}\rangle+D_{F_{t}}(a):=a^{**}_t$. However, conditional on history, both algorithms will lead to fixed choices in the future so that bias cannot be resolved. A possible way to get around this issue is to sample $a_t$ from some distribution $P_t$\footnote{One has enough freedom to design such a distribution, which is itself an art.} on $\mathcal A$ with mean $a_t^*$ or $a^{**}_t$. This leads to the following algorithm:
+\begin{algorithm}
+\DontPrintSemicolon
+ \KwIn{Action set $\mathcal A$, regularization $F(a)$ and learning rate $\{\eta_t\}_{t\in [n]}$.}
+ \KwOut{ $\{a_t\}_{t\in [n]}.$}
+ \textbf{Initialization}: $t=1$, $a_1=\argmin_{a\in\mathcal A}F(a)$.\\
+ \While{$t\leq n$}{
+ \begin{itemize}
+\item Estimate $y_t$ by an unbiased estimator $\hat{Y}_t$, say the importance-weighted estimator; 
+\item \begin{align*}
+\bar{a}_{t+1}&=\argmin_{a\in\mathcal A}\eta_{t+1}\sum_{s\in [t]}\langle a, \hat{Y}_s\rangle+F(a)\ \ \text{(FTRL)}\\
+\bar{a}_{t+1}&=\argmin_{a\in\mathcal A}\eta_{t+1}\langle a, \hat{Y}_{t-1}\rangle+D_{F}(a)\ \ \text{(Mirror descent)}
+\end{align*}
+\item Sample $a_{t+1}$ from $P_{t+1}$, where $P_{t+1}$ is some distribution on $\mathcal A$ with mean $\bar{a}_{t+1}$;
+\item $t = t +1$. 
+\end{itemize}
+}
+\caption{FTRL/Mirror descent algorithms for adversarial linear bandits.} 
+\label{alg:al-Exp3r}
+\end{algorithm}
+The regret bound given by Algorithm \ref{alg:al-Exp3r} follows directly from Theorem \ref{al:FTRL} and \ref{al:MR}. Take the FTRL for instance. For each $t$, first conditional on $\bar{a}_t$ and then averaging over $P_t$, 
+\begin{align}
+ \sum_{t\in [n]}\E[\langle \bar{a}_t-a, \hat{Y}_t\rangle]= \sum_{t\in [n]}\E[\langle \bar{a}_t-a, y_t\rangle]= \sum_{t\in [n]}\E[\langle a_t-a, y_t\rangle]=R_n.
+\end{align}
+Therefore,
+\begin{align*}
+R_n\leq\frac{\max_{a,b\in\mathcal A}F(a)-F(b)}{\eta_n}+\E\left[\sum_{t\in [n]}\underbrace{\left(\langle \bar{a}_t- \bar{a}_{t+1}, y_t\rangle-\frac{D_F(\bar{a}_{t+1}, \bar{a}_t)}{\eta_t}\right)}_{\frac{\eta_t}{2}||y_t||_{H_t^{-1}}^2}\right].
+\end{align*} 
+where $H_t$ is the Hessian of $F$ at some point $\xi_t$ between $\bar{a}_t$ and $\bar{a}_{t+1}$.
+
+We now see a few examples:
+
+\begin{Ex}[$k$-armed adversarial bandits]\label{al:ex1}
+Let $d=k and \mathcal A = \text{conv}(e_i)_{i\in [k]}$\footnote{It is easy to check that maximizing the relative loss over $\{e_i\}$ is equivalent to maximizing over $\text{conv}(e_i)_{i\in [k]}$.}. Set $F(a)$ as the negentropy $\sum_{i\in [k]}a^{(i)}(\log a^{(i)}-1)$, where $a=(a^{(i)})_{i\in [k]}$. It is easy to check that $a_1=(\frac{1}{k}, \cdots, \frac{1}{k})^T$. For $x\in\mathcal A$ and $y\in\R_+^k$, 
+\begin{align*}
+D_F(x,y) &= \sum_{i\in [k]}x^{(i)}(\log x^{(i)}-1)-\sum_{i\in [k]}y^{(i)}(\log y^{(i)}-1)-\sum_{i\in [k]}\log y^{(i)}(x^{(i)}-y^{(i)})\\
+& = \sum_{i\in [k]}x^{(i)}\log \frac{x^{(i)}}{y^{(i)}}+\text{terms of}\ y.
+\end{align*}
+Therefore, $\text{Proj}_{F, \mathcal A}(y) = \frac{y}{||y||_1}$. From direct computation, we find that
+\begin{align}
+a_t^{(i)} = \frac{e^{-\eta_t\sum_{s\in [t-1]} y_s^{(i)}}}{\sum_{i\in [k]}e^{-\eta_t\sum_{s\in [t-1]} y_s^{(i)}}}. \label{al:5}
+\end{align}
+Replacing $y_i$ by the importance-weighted estimator and and choosing $P_t$ as a distribution on $\{e_i\}_{i\in [k]}$ with $P_t(e_i)=a_t^{(i)}$ ($A_t\sim P_t$) recovers the Exp3 algorithm for $k$-armed bandits. 
+Using the fact that $F\in [1,\log k+1] $, $\nabla^{-2} F(a) = \text{diag}(a)$ and $\hat{Y}_t=\frac{\langle y_t, e_{A_t}\rangle}{P_{A_t}}e_{A_t}$,
+\begin{align*}
+R_n\leq\frac{\log k}{\eta_n}+\frac{k}{2}\sum_{t\in [n]}\eta_t.
+\end{align*}
+Taking $\eta_t = \sqrt{\log k/kt}$ (adaptive learning rates) yields $R_n\leq 2\sqrt{nk\log k}$.
+\end{Ex}
+
+\begin{Ex}[The log barrier and first order bounds]
+This example is taken from an exercise in \cite{lattimore2018bandit}, which is adapted from the work \cite{wei2018more}. It has exactly the same context as in the Example \ref{al:ex1} except with a different regularization function: $F(a)=-\sum_{i\in [k]}\log a^{(i)}$. This gives a different weight matrix $\nabla^{-2} F(x) = \text{diag}(x^2)$. Therefore,
+\begin{align*}
+R_n(a)\leq\frac{F(a)-k\log k}{\eta_n}+\frac{1}{2}\sum_{t\in [n]}\E[\eta_t\langle y_t, e_{A_t}\rangle^2].
+\end{align*}
+When maximizing over $a$, the bound becomes useless since $F(a)$ blows up when $a$ approaches the corners of $\mathcal A$. We consider a truncated version of $\mathcal A$ and use the boundedness assumption of the bandit to achieve a more reasonable bound for the regret. For convenience let arm $1$ correspond to the optimal action. Then, 
+\begin{align*}
+R_n&\leq\min_{a\in\mathcal A\cap\{\min_{i\in [k]} a^{(i)}\geq\frac{1}{n}\}}\sum_{t\in [n]}\langle a-e_1, y_t\rangle +\max_{a\in\mathcal A\cap\{\min_{i\in [k]} a^{(i)}\geq\frac{1}{n}\}} R_n(a)\\
+&\leq k-1+\frac{k\log\frac{n}{k}}{\eta_n}+\frac{1}{2}\sum_{t\in [n]}\E[\eta_t\langle y_t, e_{A_t}\rangle^2].
+\end{align*}
+Taking 
+\begin{align*}
+\eta_t\footnote{\text{Even though the learning rates are adaptive, they still depend on the horizon $n$.}}
+ = \sqrt{\frac{k\log (\frac{n\wedge k}{k})}{1+\sum_{s\in [t-1]}\langle y_s, e_{A_s}\rangle^2}}
+\end{align*} 
+yields
+\begin{align*}
+R_n &\leq k-1+2\sqrt{k\left(1+\E\left[\sum_{t\in [n]}\langle a_t, e_{A_t}\rangle^2\right]\right)\log\left(\frac{n\wedge k}{k}\right)}\\
+&\leq k-1+2\sqrt{k\left(1+R_n+\min_{i\in [k]}\sum_{t\in [n]}\langle a_t, e_i\rangle\right)\log\left(\frac{n\wedge k}{k}\right)},
+\end{align*}
+which further simplifies to $R_n=\mathcal O\left(\sqrt{k\min_{i\in [k]}\sum_{t\in [n]}\langle a_t, e_i\rangle\log\left(\frac{n\wedge k}{k}\right)}\right)$. 
+
+\end{Ex}
+ 
+
+
+\subsection{Connections to stochastic linear bandits}
+ 
 \printbibliography
+
  
  
 \end{document}
