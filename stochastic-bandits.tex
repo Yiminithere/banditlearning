@@ -1360,7 +1360,7 @@ Since we are comparing our strategy to the best expert in hindsight, we will put
  \KwIn{$n$: horizon; $\eta$: exploration rate; $M$: number of experts; $\gamma$: variance-controlling parameter (which is used in Exp3.IX); $E_t = (E^T_{tm})_{m\in [M]}$: experts' advice}
  \KwOut{ $(\pi_t)_{t\in [n]}$}
  \begin{algorithmic}[1]
- \STATE \textbf{Initialization}: $P_1 = (\frac{1}{M}, \cdots, \frac{1}{M})^T$ \ \ \ \tcp{Initial distribution on the experts}
+ \STATE \textbf{Initialization}: $P_1 = (\frac{1}{M}, \cdots, \frac{1}{M})$ \ \ \ \tcp{Initial distribution on the experts}
  \FOR{$t=1, \cdots, n$}
  \STATE $\pi_t\sim P'_t := P_tE_t$  \ \ \ \ \ \tcp{Sampling distribution}
  \STATE $\displaystyle\hat{Y}_t = \frac{y_t}{P'_t+\gamma}\mathbb I_{i=\pi_t}$. \ \ \ \ \ \tcp{Importance-weighted estimator}
@@ -1499,9 +1499,9 @@ The regret bound given by Algorithm \ref{alg:al-Exp3r} follows directly from The
  \sum_{t\in [n]}\E[\langle \bar{a}_t-a, \hat{Y}_t\rangle]= \sum_{t\in [n]}\E[\langle \bar{a}_t-a, y_t\rangle]= \sum_{t\in [n]}\E[\langle a_t-a, y_t\rangle]=R_n.
 \end{align}
 Therefore,
-\begin{align*}
-R_n\leq\frac{\max_{a,b\in\mathcal A}F(a)-F(b)}{\eta_n}+\E\left[\sum_{t\in [n]}\underbrace{\left(\langle \bar{a}_t- \bar{a}_{t+1}, \hat{Y}_t\rangle-\frac{D_F(\bar{a}_{t+1}, \bar{a}_t)}{\eta_t}\right)}_{\frac{\eta_t}{2}||\hat{Y}_t||_{H_t^{-1}}^2}\right].
-\end{align*} 
+\begin{align}
+R_n\leq\frac{\max_{a,b\in\mathcal A}F(a)-F(b)}{\eta_n}+\E\left[\sum_{t\in [n]}\underbrace{\left(\langle \bar{a}_t- \bar{a}_{t+1}, \hat{Y}_t\rangle-\frac{D_F(\bar{a}_{t+1}, \bar{a}_t)}{\eta_t}\right)}_{\frac{\eta_t}{2}||\hat{Y}_t||_{H_t^{-1}}^2}\right].\label{gb}
+\end{align} 
 where $H_t$ is the Hessian of $F$ at some point $\xi_t$ between $\bar{a}_t$ and $\bar{a}_{t+1}$.
 
 We now see a few examples:
@@ -1516,7 +1516,7 @@ Therefore, $\text{Proj}_{F, \mathcal A}(y) = y/||y||_1$. From direct computation
 \begin{align}
 a_t^{(i)} = \frac{e^{-\eta_t\sum_{s\in [t-1]} y_s^{(i)}}}{\sum_{i\in [k]}e^{-\eta_t\sum_{s\in [t-1]} y_s^{(i)}}}. \label{al:5}
 \end{align}
-Replacing $y_i$ by the importance-weighted estimator and and choosing $P_t$ as a distribution on $\{e_i\}_{i\in [k]}$ with $P_t(e_i)=a_t^{(i)}$ ($A_t\sim P_t$) recovers the Exp3 algorithm for $k$-armed bandits. 
+Replacing $y_i$ by the importance-weighted estimator and and choosing $P_t$ as a distribution on $\{e_i\}_{i\in [k]}$ with $P_t(e_i)=a_t^{(i)}$ in \eqref{gb} recovers the Exp3 algorithm for $k$-armed bandits. 
 Using the fact that $F\in [1,\log k+1] $, $\nabla^{-2} F(a) = \text{diag}(a)$ and $\hat{Y}_t=\frac{\langle y_t, e_{A_t}\rangle}{P_{A_t}}e_{A_t}$,
 \begin{align*}
 R_n\leq\frac{\log k}{\eta_n}+\frac{k}{2}\sum_{t\in [n]}\eta_t.
@@ -1525,14 +1525,46 @@ Taking $\eta_t = \sqrt{\log k/kt}$ (adaptive learning rates) yields $R_n\leq 2\s
 \end{Ex}
 
 
-\begin{Ex}[Agreement of experts]\label{expert}
-
-
+\begin{Ex}[Disagreement of experts]\label{expert}
+We demonstrate that bandits with expert advice can be viewed as a special case of adversarial linear bandits. We will use the same notation as in Algorithm \ref{alg:al-Exp4}. To see this, take $\mathcal A=\text{conv}(e_m)_{m\in [M]}$.  Similar to Example \ref{al:ex1}, we use the convex hull for convenience. For each $a\in\mathcal A$, its expected loss is given by $\langle E^T_ta, y_t\rangle=\langle a, E_ty_t\rangle$. Therefore, the environment is given by the transformed sequence $\{E_ty_t\}_{t\in [n]}$. Under this set-up, a natural unbiased estimator for $E_ty_t$ is 
+\begin{align*}
+E_ty_t = \E[E_t\hat{Y}_t],
+\end{align*} 
+where $\hat{Y}_t$ is the importance-weighted estimator. Note that directly estimating $E_ty_t$ is hard since they are closely correlated, and it is often easier to estimate the low-dimensional structure.  Taking $F(a)$ and $P_t$ the same as in Example \ref{al:ex1} recovers Algorithm \ref{alg:al-Exp4}. The regret $R_n$ is bounded by \eqref{gb}. Moreover, in this case, the first term on the right-hand side of \eqref{gb} is bounded by $\log M/\eta_n$, and for the second term, note that it is enough to consider when
+\begin{align*} 
+\langle\bar{a}_t-\bar{a}_{t+1}, E_t\hat{Y}_t\rangle\geq 0,
+\end{align*}
+or equivalently,
+\begin{align*}
+\langle\bar{a}_t, E_t^{\langle\pi_t\rangle}\rangle\geq \langle\bar{a}_{t+1}, E_t^{\langle\pi_t\rangle}\rangle,
+\end{align*}
+where $E_t^{\langle\pi_t\rangle}$ is the $\pi_t$-th column of $E_t$, since otherwise the quantity within the expectation is non-positive and automatically bounded by $0$. Thus, for fixed $t$, 
+\begin{align*}
+\langle \bar{a}_t- \bar{a}_{t+1}, E_t\hat{Y}_t\rangle-\frac{D_F(\bar{a}_{t+1}, \bar{a}_t)}{\eta_t}&=\frac{\eta_t}{2}||E_t\hat{Y}_t||^2_{H_t^{-1}}=\frac{\eta_ty_{t\pi_t}}{2{P'}^2_t(\pi_t)}\langle H_t^{-1}E_t^{\langle\pi_t\rangle}, E_t^{\langle\pi_t\rangle} \rangle\\
+& \stackrel{P_t'= P_t E_t}{\leq} \frac{\eta_t}{2\langle P_t, E_t^{\langle\pi_t\rangle}\rangle^2}\langle H_t^{-1}E_t^{\langle\pi_t\rangle}, E_t^{\langle\pi_t\rangle} \rangle\\
+& =\frac{\eta_t}{2\langle P_t, E_t^{\langle\pi_t\rangle}\rangle^2}\sum_{m\in [M]}\left(\kappa \bar{a}_t^{(m)}+(1-\kappa) \bar{a}_{t+1}^{(m)}\right)E^2_{t\pi_t}(m)\\
+& \leq\frac{\eta_t\max_{m\in [M]}E_{t}^{\langle \pi_t \rangle}(m)}{2\langle P_t, E_t^{\langle\pi_t\rangle}\rangle^2}\sum_{m\in [M]}\left(\kappa \bar{a}_t^{(m)}+(1-\kappa) \bar{a}_{t+1}^{(m)}\right)E_t^{\langle\pi_t\rangle}(m)\\
+&\leq\frac{\eta_t\max_{m\in [M]}E_{t}^{\langle \pi_t \rangle}(m)}{2\langle P_t, E_t^{\langle\pi_t\rangle}\rangle^2}\sum_{m\in [M]}\bar{a}_t^{(m)}E_t^{\langle\pi_t\rangle}(m)\\
+&\stackrel{P_t\sim\bar{a}_t}{=}\frac{\eta_t\max_{m\in [M]}E_{t}^{\langle \pi_t \rangle}(m)}{2\langle P_t, E_t^{\langle\pi_t\rangle}\rangle},
+\end{align*} 
+where $\kappa\in [0,1]$ is some case-dependent constant. Averaging over $\pi_t$ and summing over $t$ yields
+\begin{align*}
+\sum_{t\in [n]}\E\left[\langle \bar{a}_t- \bar{a}_{t+1}, E_t\hat{Y}_t\rangle-\frac{D_F(\bar{a}_{t+1}, \bar{a}_t)}{\eta_t}\right]\leq\frac{1}{2}\sum_{t\in [n]}\eta_t\underbrace{\sum_{i\in [k]}\max_{m\in [M]}E_t^{\langle i \rangle}(m)}_{E^*_t}. 
+\end{align*}
+Taking $\eta_t = \sqrt{\log M/E_t^*}$ and combing the two estimates together arrives the bound for $R_n$:
+\begin{align}
+R_n\leq C\sqrt{E_n^*\log M}, \label{exp-bdd}
+\end{align}
+where $C>0$ is some absolute constant. The quantity $E_n^*$ measures the cumulative degree of disagreement. It is easy to check that
+\begin{align*}
+n\leq E_n^*\leq n\min\{k, M\}.
+\end{align*}
+The lower bound is achieved when all the experts give exactly the same advice in each round, and the upper bound is achieved when all experts give completely different and affirmative advice.  Bound \eqref{exp-bdd} is encouraging since it implies that learning is easier when the experts have more aligned recommendations, which coincides with the intuition.  
 \end{Ex}
 
 
 \begin{Ex}[The log barrier and first order bounds]
-This example is taken from an exercise in \cite{lattimore2018bandit}, which is adapted from the work \cite{wei2018more}. It has exactly the same context as in the Example \ref{al:ex1} except with a different regularization function: $F(a)=-\sum_{i\in [k]}\log a^{(i)}$. This gives a different weight matrix $\nabla^{-2} F(x) = \text{diag}(x^2)$. Therefore,
+This example is taken from an exercise in \cite{lattimore2018bandit}, which is adapted from the work \cite{wei2018more}. It has exactly the same context as in the Example \ref{al:ex1} except with a different regularization function: $F(a)=-\sum_{i\in [k]}\log a^{(i)}$. This gives a different weight matrix $\nabla^{-2} F(x) = \text{diag}(x^2)$. Therefore, we can bound $R_n(a)$ as\footnote{We use the estimate in \eqref{gb} if $P_t(e_{A_t})\geq P_{t+1}(e_{A_t})$, otherwise the quantity inside the expectation of the second term in \eqref{gb} is negative.}
 \begin{align*}
 R_n(a)\leq\frac{F(a)-k\log k}{\eta_n}+\frac{1}{2}\sum_{t\in [n]}\E[\eta_t\langle y_t, e_{A_t}\rangle^2].
 \end{align*}
