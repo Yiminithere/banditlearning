@@ -1,6 +1,6 @@
-%\documentclass[10pt,a4article]{amsart}
-\documentclass[10pt,a4article]{article}
-%\documentclass[11pt]{amsart}
+%\documentclass[11pt,a4article]{amsart}
+%\documentclass[9pt,a4article]{article}
+\documentclass[10pt, openright]{book}
 \usepackage{amsmath,amsthm,amsfonts,verbatim,amscd,graphicx,amssymb}
 \usepackage{mathtools}
 \usepackage[ruled,vlined]{algorithm2e}
@@ -117,9 +117,11 @@
 \author{Yiming Xu\thanks{Department of Mathematics, University of Utah, Salt Lake City, 84112. }}
 \maketitle
 
-\begin{abstract}
-These notes are born out of a reading course at the University of Utah in Spring 2020. Most of the results in the notes are taken from \cite{lattimore2018bandit}, while others trace back to a few papers that I ran into along the way. The main purpose of the writeup is to assist my own understanding of some topics in bandit learning, and keeps a record for what has been covered. Any imprecision or mistakes are restricted to my own. 
-\end{abstract}
+%\begin{abstract}
+\vspace*{\fill}
+These notes are born out of a reading course at the University of Utah in Spring 2020. Most of the results in the notes are taken from \cite{lattimore2018bandit}, while others trace back to a few papers that I ran into along the way. The main purpose of the writeup is to assist my own understanding of some topics in bandit learning, and to keep a record for what has been covered. Any imprecision or mistakes are restricted to my own. 
+\vspace*{\fill}
+%\end{abstract}
 
 \bigskip
 
@@ -130,9 +132,9 @@ These notes are born out of a reading course at the University of Utah in Spring
 \tableofcontents
 \newpage
 
-\section{Stochastic Bandits}\label{sec1}
+\chapter{Stochastic Bandits}\label{sec1}
 
-\subsection{Problem set-up}\label{bg}
+\section{Problem set-up}\label{bg}
 
 Suppose that you are facing a $k$-armed slot machine. Every time you can choose one arm to play and the corresponding reward will be immediately revealed. Rewards of the arms not played in the round are assumed hidden. As players, we wish to find a strategy so that our gain is reasonably good after a given period of time, or equivalently, our regret is relatively small compared to some `optimal strategy '. This leads to a class of sequential decision making problems which we refer to as the \emph{bandit learning}.  
 
@@ -164,7 +166,7 @@ R_n=\sum_{i\in [k]}\Delta_i\E[T_i(n)].\label{s:2}
 \end{align} 
 Such form provides a convenient way to analyze $R_n$.  Indeed, since the summation is over $i$, one often only needs to bound $\E[T_i(n)]$ for each $i$ under a given policy.  
 
-\subsection{Algorithms}
+\section{Algorithms}
 
 We mention two well-known algorithms in stochastic bandit learning: The Explore-then-Commit (ETC) algorithm and the Upper Confidence Bound (UCB) algorithm, each of which is followed by a short summary of their pros and cons, as well as some asymptotic results.   
 
@@ -301,7 +303,7 @@ As we will see, this is the best possible minimax lower bound (with a different 
 \end{Rem} 
 
 \begin{Rem}[Alternative estimators]
-In Algorithm \ref{alg:UCB}, the Hoeffding inequality is used to compute the confidence intervals, which can be loose sometimes. For example, consider the Bernoulli bandits whose means are close to $0$ or $1$. In such situations, one could apply the Chernoff bound instead, which gives entropy-based asymmetric confidence intervals. The corresponding regret will be improved by a taming factor (which usually depends on variance). Also, UCB works without the sub-gaussian assumption on rewards. One could replace the sample mean estimator by the median-of-means estimator, see the Exercise 2.2.9 in \cite{Vershynin_2018}. For any distributions whose second moment exists, the regret is similar to what we have in Theorem \ref{thm:UCB} but with a worse constant factor. 
+In Algorithm \ref{alg:UCB}, the Hoeffding inequality is used to compute the confidence intervals, which can be loose sometimes. For example, consider the Bernoulli bandits whose means are close to $0$ or $1$. In such situations, one could apply the Chernoff bound instead, which gives entropy-based asymmetric confidence intervals, see the KL-UCB algorithm in \cite{garivier2011kl}. The corresponding regret will be improved by a taming factor (which usually depends on variance). Also, UCB works without the sub-gaussian assumption on rewards. One could replace the sample mean estimator by the median-of-means estimator, see the Exercise 2.2.9 in \cite{Vershynin_2018}. For any distributions whose second moment exists, the regret is similar to what we have in Theorem \ref{thm:UCB} but with a worse constant factor. 
 \end{Rem}
 
 
@@ -410,9 +412,9 @@ R_n=\mathcal O\left(\sum_{i\in [k]}\Delta_i + \sqrt{nk\log k}\right).
 
 
 
-\subsection{Lower bounds on regret}
+\section{Lower bounds on regret}
 
-\subsubsection{Minimax lower bound}
+\subsection{Minimax lower bound}
 
 We introduce the \emph{minimax} lower bound in this section, which can help us understand the best universal behavior of stochastic bandit algorithms. Let $\V$ be the environment class consisting of the admissible $\mu$. The worst-case regret for a policy $\pi$ is defined as 
 \begin{align*}
@@ -478,7 +480,7 @@ Taking $\Delta=\sqrt{k/2n}$ completes the proof.
 \end{proof}
 
 
-\subsubsection{Instance-dependent lower bound}
+\subsection{Instance-dependent lower bound}
 
 We consider instance-dependent lower bound for policies which are known to be `good'. First of all, let us clarify what we mean by a good policy. A policy $\pi$ is \emph{consistent} over $\V$ if for all $\mu\in\V$ and $p>0$, 
 \begin{align*}
@@ -522,7 +524,8 @@ Combining this with Remark \eqref{ins-opt} proves the instance optimality of the
 \end{Rem}
 
 
-\subsection{Thompson sampling}   
+
+\section{Thompson sampling}
 
 In this section, we introduce the Thompson sampling in the context of stochastic bandits. Thompson sampling \cite{Thompson_1933} is well acknowledged as the first bandit algorithm which is named after the Canadian entomologist William R. Thompson. 
 The idea behind it is similar to the UCB, but adopts a Bayesian point of view. Assuming the bandit is selected from a parametric family according to a prior, Thompson sampling uses the posterior computed from the explored data to guide future exploration. 
@@ -532,7 +535,7 @@ Let $\mathcal E$ be the class of environments. The frequentist view on stochasti
 \begin{align}
 R_{n, \BR}=\E_\Q[R_{n,\mu}],\label{br}
 \end{align}
-where $R_{n,\mu}$ is defined in \eqref{s:1}. \eqref{br} is referred to as the \emph{Bayesian regret}. 
+where $R_{n,\mu}$ is defined in \eqref{s:1}. \eqref{br} is referred to as the \emph{Bayesian regret}. Bayesian optimality (as opposed to the minimax optimality) is measured by the Bayesian regret. A major appeal of the Bayesian framework is that the optimal Bayesian strategy can often be described, if not always computed. This result is closely related to the Gittins indices which we will discuss in detail in chapter \ref{ch:5}.
 
 Thompson sampling can be described as follows. Assuming data $x_{s\pi_s}$ has been observed for $s\leq t$, one can then compute the posterior distribution on $\mu$ using the prior: $\Q(\mu|x_{s\pi_s}, 1\leq s\leq t)$. Instead of directly taking the statistics of the posterior to choose $\pi_{t+1}$, one samples a new bandit according to the posterior, and set $\pi_{t+1}$ as the optimal arm in the random realization. This randomization forces exploration until the posterior is concentrated, in which case it is expected to close to $\mu$. The details of the algorithm are as follows:
 
@@ -541,11 +544,7 @@ Thompson sampling can be described as follows. Assuming data $x_{s\pi_s}$ has be
  \KwOut{$\pi=(\pi_t)_{t\in [n]}$}
  \begin{algorithmic}[1]
  \FOR{$t = 1, \cdots, n$}
- \IF{$t=1$}
- \STATE {Sample $\nu\sim\Q( \cdot )$}
- \ELSE
- \STATE{Sample $\nu\sim\Q( \cdot |x_{s\pi_s}, 1\leq s\leq t-1)$}
- \ENDIF
+ \STATE{Sample $\nu\sim\Q( \cdot |x_{s\pi_s}, 1\leq s\leq t-1)$\footnote{\textcolor{gray}{Parameters $\mu$ may not always represent the true mean in different models. However, it is always the case that the true mean is a function (link function) of $\mu$. So in general one should sample $\nu$ from the posterior distribution of the mean. Here for simplicity, we just take the function to be identity for illustration.}}}
  \STATE{$\pi_{t} = \argmax_{i\in [k]}\nu_i$}
 \ENDFOR
  \end{algorithmic}
@@ -569,7 +568,7 @@ so that
 \end{align*}
 where $\mathsf D_{KL}(\cdot, \cdot)$ is the KL-divergence. This observation has the following consequences:
 \begin{itemize}
-\item When $i$ has been pulled many times, the $i$-th marginal of $p(\nu)$ is concentrated, thus encouraging future pulls to explore in other directions. When all arms have been well-explored, $p(\nu)d\nu\rightharpoonup\delta_{\mu}$.
+\item When $i$ has been pulled many times, the $i$-th marginal of $p(\nu)$ is concentrated, thus encouraging future pulls to explore in other directions. When all arms have been well-explored, $p(\nu)d\nu\approx\delta_{\mu}$.
 
 \item The convergence rate of $p(\nu)d\nu$ to $\delta_{\mu}$ would be slow if $\Q(\mu)$ is small, so the bandit in this case is hard to learn from the posterior, hence a large $R_{n,\mu}$ is expected. On the other hand, $\Q(\mu)$ being small suggests that $\mu$ is unlikely to be obtained under $\Q$. When averaging over $\Q$, $R_{n,\mu}$ should be not too large. 
 \end{itemize}
@@ -605,13 +604,35 @@ R_{n,\BR}&\leq kn^2\delta + \sum_{i\in [k]}\int_{0}^{T_{i}(n)}2\sqrt{\frac{2\log
 where the last step follows from Jensen's inequality. Setting $\delta=n^{-2}$ completes the proof. 
 \end{proof}
 
+\begin{Rem}
+The idea of using direct sampling from posterior distributions can be further extended. 
+For example, one may consider seeking an optimistic estimate for the true mean as in the UCB algorithm, which can be done by calculating the quantile of the marginal posterior for each arm. 
+Such idea first appeared in \cite{kaufmann2012bayesian} and the corresponding algorithm is called the Bayes-UCB:
+
+\begin{algorithm}[H]
+\KwIn{$n$: horizon; $\Q$: prior distribution on the bandit; $c$: parameters of the quantile}
+\KwOut{$\pi=(\pi_t)_{t\in [n]}$}
+\begin{algorithmic}[1]
+ \FOR{$t = 1, \cdots, n$}
+ \FOR{$i = 1, \cdots, k$}
+ \STATE{Calculate the posterior marginal $Q_{ti}$ for arm $i$ from $Q( \cdot |x_{s\pi_s}, 1\leq s\leq t-1)$}
+ \STATE{$q_{ti} = \max\left\{r: \Q_{ti}\left((-\infty, r]\right)\leq 1-\frac{1}{t(\log n)^c}\right\}$} \ \ \ \  \tcp{Calculate the $(1-t^{-1}(\log n)^{-c})$-quantile for arm $i$}
+\ENDFOR
+\STATE{$\pi_{t} = \argmax_{i\in [k]}q_{ti}$}
+\ENDFOR
+ \end{algorithmic}
+\caption{Bayes-UCB} 
+\label{alg:B-UCB}
+\end{algorithm}
+
+Analysis of Algorithm \ref{alg:B-UCB} in the frequentist setting for Bernoulli bandits with Beta priors is given in \cite{kaufmann2012bayesian}. The idea follows from our intuition provided before but was made rigorous using the tail bounds for Beta distributions. Numerical results in the paper demonstrated a superior performance of Bayes-UCB over some other frequentist-based algorithms. It also showed that the Bayes-UCB strategy, when used with a sparsity-incuding prior, can be numerically approximated using Markov Chain Monte Carlo simulations.  
+
+\end{Rem}
 
 
-\newpage 
+\chapter{Stochastic Linear Bandits}
 
-\section{Stochastic Linear Bandits}
-
-\subsection{Some generalization}
+\section{Some generalization}
 
 Recall the definition of regret given in \eqref{s:1}. In many practical situations, not only is the chosen reward observed by the player but also the side information associated with it.  Such extra knowledge makes the model more complicated and as a consequence, the best possible policy in hindsight could be more optimal than the one used in \eqref{s:1}.  In this chapter, we will extend stochastic bandits to a more general class of bandit problems where side information can be appropriately included, and understand their learning strategies. The discussion closely follows the one in \cite{lattimore2018bandit}. 
 As a starter, let us consider a stochastic model where contextual information is available. 
@@ -642,7 +663,7 @@ where $\mathcal A_t = \{\phi(c_t, i)\}_{i\in [k]}$ is the set of features availa
 
 We next discuss some policies in stochastic linear bandits, depending on different assumptions on $\mathcal A_t$. Note that $\mathcal A_t$ is finite from the perspective of stochastic contextual bandits and the kernel map. However, in the general set-up of stochastic linear bandits, $\mathcal A_t$ is allowed to be infinite. Regardless of varying assumptions on $\mathcal A_t$, the regret defined in \eqref{sl:4} is based on the lack of information of $r$ so that one always needs to efficiently estimate for $\theta$ in the exploration process. Nevertheless, the efficiency here can have different meanings for different types of $\mathcal A_t$, which needs to be discussed in a case-dependent manner. 
 
-\subsection{Stochastic linear bandits with finite and fixed action sets}
+\section{Stochastic linear bandits with finite and fixed action set}
 
 We begin our analysis for stochastic linear bandits whose action set $\mathcal A_t = \mathcal A$ does not change with time. We also assume that $|\mathcal A|=k$. Let $a_t\in\mathcal A$ be the feature vector associated with the action under some policy $\pi$ at time $t$. The exploration process suffices to estimate $\t$, and a natural estimator is the least-squares estimator. One may use the Ridge estimator if having invertibility issues. Precisely, in round $t$, $\t$ is estimated by $\hat{\t}_t$, where $\hat{\t}_t $ solves the normal equations: 
 \begin{align*}
@@ -783,7 +804,7 @@ R_n=\mathcal O\left(\sqrt{nd\log (nk)}+\e n\sqrt{d}\log n\right).
 Algorithm \ref{alg:sl-finite} can be viewed as the generalized version of Algorithm \ref{alg:elimination} for (linear) structured stochastic bandits. The uniform exploration in each phase is replaced with an effective allocation given by the Kiefer-Wolfowitz Theorem. Indeed, Theorem \ref{sl:finite} implies Theorem \ref{elim} by taking $\mathcal A$ as canonical bases in $\R^d$ and $d=k$.  
 \end{Rem}
 
-\subsection{Stochastic linear bandits with general action sets}
+\section{Stochastic linear bandits with general action sets}
 
 We now consider stochastic linear bandits with general action sets, meaning that $\mathcal A_t$ can be both time-varying and infinite.
 This requires us to find all-rounded confidence sets adaptively.  
@@ -890,11 +911,7 @@ Thompson sampling can also be used for stochastic linear bandits. Assuming that 
  \KwOut{$(a_t)_{t\in [n]}$}
  \begin{algorithmic}[1]
  \FOR{$t = 1, \cdots, n$}
- \IF{$t=1$}
- \STATE {Sample $\t\sim\Q( \cdot )$}
- \ELSE
  \STATE{Sample $\t\sim\Q( \cdot |a_s, x_{s}, 1\leq s\leq t-1)$}
- \ENDIF
  \STATE{$a_{t} = \argmax_{a\in \mathcal A_{t}}\langle\t, a\rangle$}
 \ENDFOR
  \end{algorithmic}
@@ -906,7 +923,7 @@ A major advantage of Thompson sampling over frequentist based methods is the com
 
 We next give two ways of finding valid $\beta_t$'s to achieve \eqref{sl:9}, both of which used the maximal inequality for self-normalized martingales. 
 
-\subsubsection{Laplace's method}
+\subsection{Laplace's method}
 
 Define $S_t = A_{t}^T(\eta_1, \cdots, \eta_t)^T$. Note that for $t\in [n]$, 
 \begin{align}
@@ -938,7 +955,7 @@ Assuming $||\t||_2\leq\mathcal O(\sqrt{d})$, plugging \eqref{sl:13} into \eqref{
 R_n = \mathcal O \left(d\sqrt{n}\log (nL)\right).
 \end{align*}
 
-\subsubsection{Online learning prediction}\label{sec:olp}
+\subsection{Online learning prediction}\label{sec:olp}
 
 Algorithm \ref{alg:sl-UCB} (with $\hat{\t}_t$ being treated as a general estimator) is closely related to the problem of online learning prediction. 
 In online learning prediction, given an action, the learner predicts the reward using some predictor built from the history before observing the reward. 
@@ -1000,7 +1017,7 @@ When building up the confidence sets in the sparsity case, one needs to know the
 
 
 
-\subsection{Application of stochastic linear bandits on graphs}
+\section{Application of stochastic linear bandits on graphs}
 An interesting application of stochastic linear bandits in graph learning is the spectral bandit model \cite{valko2014spectral}. 
 Other related models will be summarized in the final remark at the end of this section. 
 Let $G=(V, E)$ be an undirected graph with $d$ vertices. 
@@ -1116,7 +1133,7 @@ Once a new reward is observed, one can use it to update the individual parameter
 
 
 
-\subsection{Instance-dependent lower bound}
+\section{Instance-dependent lower bound}
 We now discuss the inevitable regret for any learning strategy in stochastic linear bandits. As in Section \ref{sec1}, there are two directions to answer this question.  The first is to consider the minimax regret for fixed horizon $n$, which comes down to analyzing policies whose worst regret over a class of bandits is optimal. The idea for this approach is similar to the study of stochastic bandits. However, identifying the environments that are mutually incoherent for a given policy is more complicated due to the varying geometry of the action set. We shall not go into the details here. The take-away message is the conclusion: For various types of $\mathcal A$ (independent of $t$), the regret incurred by applying Algorithm \ref{alg:sl-UCB} is near-optimal (only differ by a log factor). From this perspective, the universal behavior if optimistic algorithms is almost optimal. 
 
 The other way is to consider the asymptotic instance lower bound for a consistent policy.  In this case, one first fixes a bandit then sends $n$ to infinity. This approach provides a theoretical limit of learning in infinite horizon, yet it may obscure some humongous constants that often matter in practice. The main result we are going to introduce in this section quantifies the asymptotic lower bound for consistent policies. The bound, which is solved by an optimization problem, is achievable by a well-designed policy (not guaranteed as finite-time optimal so may not be useful in practice).  As a disturbing consequence, it can be shown that optimistic policies can be far from being asymptotically optimal, see \cite{lattimore2016end}. 
@@ -1203,11 +1220,10 @@ Yet a consistent policy requires $e_2$ be explored to a given extent. If this is
 which further simplifies to $\alpha_{e_3}\geq (2\gamma^2-4c)\e^{-2}$. Hence, if $\gamma>\sqrt{2c}$, then the regret $R_n$ satisfies $R_n = \mathcal O(\e^{-1}\log n)$. Since $\e$ can be arbitrarily small, the regret incurred by the consistent UCB can be any worse than the regret of the best consistent policy. 
 
 
-\newpage
 
-\section{Adversarial Linear Bandits}
+\chapter{Adversarial Linear Bandits}
 
-\subsection{Problem set-up}
+\section{Problem set-up}
 Learning in stochastic linear bandits can be roughly viewed as a sequential decision-making problem in a random environment. 
 In this chapter, we consider a different type of bandits called adversarial bandits, where the environment is deterministic and prefixed.
 Learning under such circumstances is therefore more of the game theory flavor.  
@@ -1263,7 +1279,7 @@ R_n(\pi) = \E\left[\sum_{t\in [n]}\langle a_t, y_t\rangle-\min_{a\in\mathcal A}\
 In the rest of this chapter, we will be focused on discussing algorithms with provable sub-linear bounds for \eqref{al:1}. Following the same convention as in the previous discussion, we will abbreviate $R_n(\pi)$ as $R_n$ whenever the policy is clear from the context. 
 
 
-\subsection{Algorithms}
+\section{Algorithms}
 
 We now discuss learning strategies for adversarial linear bandits.
 The first algorithm we are going to analyze is called Exp3, which is the abbreviation of \textbf{Exp}onential-weight algorithm for \textbf{Exp}loration and \textbf{Exp}loitation. 
@@ -1348,7 +1364,7 @@ Recently, it is proved in \cite{kocak2014efficient} that the extra exploration c
 \end{Rem}
 
 \begin{Rem}[Infinite action set]
-The above proof assumes that $\mathcal A$ is finite. When $\mathcal A$ is infinite, one can use almost the same proof by replacing $\mathcal A$ by its $\e$-net discretization. However, this does not lead to a practical algorithm since obtaining an $\e$-net of an arbitrary action set is intractable. An alternative approach is to directly apply Algorithm \ref{alg:al-Exp3} to the $\mathcal A$, with $P'_t$ and $p$ interpreted as density functions. When $P$ is log-concave, then there exists a polynomial-time algorithm to sample $P_t$. The regret in this case is $\mathcal O(d\sqrt{n\log n})$, which is $\sqrt{d}$ worse than the regret in Theorem \ref{alb:Th1}. More details can be found in chapter 27 in \cite{lattimore2018bandit}. 
+The above proof assumes that $\mathcal A$ is finite. When $\mathcal A$ is infinite, one can use almost the same proof by replacing $\mathcal A$ by its $\e$-net discretization. However, this does not lead to a practical algorithm since obtaining an $\e$-net of an arbitrary action set is intractable. An alternative approach is to directly apply Algorithm \ref{alg:al-Exp3} to the $\mathcal A$, with $P'_t$ and $p$ interpreted as density functions. When $P$ is log-concave, then there exists a polynomial-time algorithm to sample $P_t$. The regret in this case is $\mathcal O(d\sqrt{n\log n})$, which is $\sqrt{d}$ worse than the regret in Theorem \ref{alb:Th1}. More details can be found in chapter 27 in \cite{lattimore2018bandit} as well as chapter 3 in \cite{bubeck2011introduction}. 
 \end{Rem}
 
 We next provide a similar algorithm for bandits with expert advice, which is called \textbf{Exp}onential weighting for \textbf{Exp}loration and \textbf{Exp}loitation with \textbf{Exp}erts (Exp4). We shall mention that in the subsequent section, both Exp3 (for $k$-armed adversarial bandits) and Exp4 can be treated as special cases in the online regularized empirical risk minimization framework. 
@@ -1381,7 +1397,7 @@ The bound can be improved to take into account the so-called the degree of disag
 
 
 
-\subsection{Online linear optimization}
+\section{Online linear optimization}
 
 In this section, we consider the online linear optimization, which provides an alternative perspective towards the adversarial linear bandits considered before. 
 From now on we assume that $\mathcal A\subset\R^d$ is convex. 
@@ -1517,7 +1533,7 @@ Therefore, $\text{Proj}_{F, \mathcal A}(y) = y/||y||_1$. From direct computation
 a_t^{(i)} = \frac{e^{-\eta_t\sum_{s\in [t-1]} y_s^{(i)}}}{\sum_{i\in [k]}e^{-\eta_t\sum_{s\in [t-1]} y_s^{(i)}}}. \label{al:5}
 \end{align}
 Replacing $y_i$ by the importance-weighted estimator and and choosing $P_t$ as a distribution on $\{e_i\}_{i\in [k]}$ with $P_t(e_i)=a_t^{(i)}$ in \eqref{gb} recovers the Exp3 algorithm for $k$-armed bandits. 
-Using the fact that $F\in [1,\log k+1] $, $\nabla^{-2} F(a) = \text{diag}(a)$ and $\hat{Y}_t=\frac{\langle y_t, e_{A_t}\rangle}{P_{A_t}}e_{A_t}$,
+Using the fact that $F\in [1,\log k+1] $, $\nabla^{-2} F(a) = \text{diag}(a)$, $\hat{Y}_t=\frac{\langle y_t, e_{A_t}\rangle}{P_t(A_t)}e_{A_t}$ and $P_{t}(A_t)\geq P_{t+1}(A_t)$,
 \begin{align*}
 R_n\leq\frac{\log k}{\eta_n}+\frac{k}{2}\sum_{t\in [n]}\eta_t.
 \end{align*}
@@ -1551,7 +1567,7 @@ where $\kappa\in [0,1]$ is some case-dependent constant. Averaging over $\pi_t$ 
 \begin{align*}
 \sum_{t\in [n]}\E\left[\langle \bar{a}_t- \bar{a}_{t+1}, E_t\hat{Y}_t\rangle-\frac{D_F(\bar{a}_{t+1}, \bar{a}_t)}{\eta_t}\right]\leq\frac{1}{2}\sum_{t\in [n]}\eta_t\underbrace{\sum_{i\in [k]}\max_{m\in [M]}E_t^{\langle i \rangle}(m)}_{E^*_t}. 
 \end{align*}
-Taking $\eta_t = \sqrt{\log M/E_t^*}$ and combing the two estimates together arrives the bound for $R_n$:
+Taking $\eta_t = \sqrt{\log M/E_t^*}$ and combining the two estimates together arrives the bound for $R_n$:
 \begin{align}
 R_n\leq C\sqrt{E_n^*\log M}, \label{exp-bdd}
 \end{align}
@@ -1564,7 +1580,7 @@ The lower bound is achieved when all the experts give exactly the same advice in
 
 
 \begin{Ex}[The log barrier and first order bounds]
-This example is taken from an exercise in \cite{lattimore2018bandit}, which is adapted from the work \cite{wei2018more}. It has exactly the same context as in the Example \ref{al:ex1} except with a different regularization function: $F(a)=-\sum_{i\in [k]}\log a^{(i)}$. This gives a different weight matrix $\nabla^{-2} F(x) = \text{diag}(x^2)$. Therefore, we can bound $R_n(a)$ as\footnote{We use the estimate in \eqref{gb} if $P_t(e_{A_t})\geq P_{t+1}(e_{A_t})$, otherwise the quantity inside the expectation of the second term in \eqref{gb} is negative.}
+This example is taken from an exercise in \cite{lattimore2018bandit}, which is adapted from the work \cite{wei2018more}. It has exactly the same context as in the Example \ref{al:ex1} except with a different regularization function: $F(a)=-\sum_{i\in [k]}\log a^{(i)}$. This gives a different weight matrix $\nabla^{-2} F(x) = \text{diag}(x^2)$. In this case, it is easy to check that
 \begin{align*}
 R_n(a)\leq\frac{F(a)-k\log k}{\eta_n}+\frac{1}{2}\sum_{t\in [n]}\E[\eta_t\langle y_t, e_{A_t}\rangle^2].
 \end{align*}
@@ -1573,7 +1589,7 @@ We consider a truncated version of $\mathcal A$ and use the boundedness assumpti
 For convenience let arm $1$ be the optimal action. Then, 
 \begin{align*}
 R_n&\leq\min_{a\in\mathcal A\cap\{\min_{i\in [k]} a^{(i)}\geq\frac{1}{n}\}}\sum_{t\in [n]}\langle a-e_1, y_t\rangle +\max_{a\in\mathcal A\cap\{\min_{i\in [k]} a^{(i)}\geq\frac{1}{n}\}} R_n(a)\\
-&\leq k-1+\frac{k\log\frac{n}{k}}{\eta_n}+\frac{1}{2}\sum_{t\in [n]}\E[\eta_t\langle y_t, e_{A_t}\rangle^2].
+&\leq k-1+\frac{k\log\left(\frac{n}{k}\right)}{\eta_n}+\frac{1}{2}\sum_{t\in [n]}\E[\eta_t\langle y_t, e_{A_t}\rangle^2].
 \end{align*}
 Taking 
 \begin{align*}
@@ -1591,15 +1607,66 @@ which further simplifies to $R_n=\mathcal O\left(\sqrt{k\min_{i\in [k]}\sum_{t\i
 
 
 
-\subsection{Universal portfolio}
+\section{Universal Portfolio}
 
-\newpage
+We end this chapter with an interesting application of exponential-weighting algorithm called Universal Portfolio in finance. 
+In fact, this strategy predates the other algorithms we have studied for adversarial linear bandits so far, and is concerned with maximizing sequential investment in long term in a stock market. 
+For discussion we will mainly follow the paper \cite{cover2011universal} where the result first appeared.
 
-\section{Budgeted Bandits}
-\subsection{Best arm identification}
+We first introduce the problem. Suppose that in a stock market, we are interested in $k$ stocks and want to invest in them using rebalanced portfolio. A portfolio can be thought as the convex combination coefficients that an investor uses to allocate money into different assets, and rebalanced means that the portfolio is changing with respect to the investment periods.  Although this may not sound practical for some investors, it is interesting to know how good one can achieve under such circumstances. As we will see, Universal Portfolio provides a reasonable strategy whose cumulative return matches the best constant porfolio in hindsight in an asymptotic sense. Before giving more details, we will need some notation. Let $n$ be the horizon as before. For $t\in [n]$, define $x_t = (x_{t1}, \cdots, x_{tk})^T$ be the stock market vector at the $t$-th investment period, i.e., $x_{ti}$ is the ratio of the closing to open price for stock $i$ at time $t$. A rebalanced portfolio strategy is a sequence of vectors $(b_t)_{t\in [n]}$ such that $b_t\in P([k])$ and is non-anticipating\footnote{Non-anticipating means that $b_t$ can only depend on information before $t$.}, where $P([k])$ denotes the set of distribution on $[k]$. The total amount of gain relative to the original investment is after time $n$ is given by
+\begin{align*}
+\tilde{S}_n = \prod_{t\in [n]}b_t^Tx_t=e^{\sum_{t\in [n]}\log(b_t^Tx_t)}, 
+\end{align*}
+where dependence on $b_t$ in the notation is omitted for convenience. The optimal criterion in this case is the gain obtained by sticking to the best constant portfolio in hindsight: 
+\begin{align}
+S_n^* = \max_{b\in P([k])}S_n(b)\ \ \ \ \ \ \ \ \ \ \ \ S_n(b)=\prod_{t\in [n]}b^Tx_t=e^{\sum_{t\in [n]}\log(b^Tx_t)}. \label{up3}
+\end{align}
+The solution (assumed unique) of \eqref{up3} is denoted by $b_n^*$. Intuitively, $S_n(b)$ grows exponentially with $n$. Therefore, using Laplace's method, one should expect that 
+\begin{align}
+\frac{1}{n}\log S_n^*\approx \frac{1}{n}\log \left(\frac{\int_{b\in P([k])}S_n(b)db}{\int_{b\in P([k])}db}\right)\ \ \ \ \text{as}\ n\to\infty. \label{up1}
+\end{align}
+On the other hand, note that $S_t(b)$ depends on the stock price in the first $t$ rounds. To make the right-hand side of \eqref{up1} into a non-anticipating strategy, write
+\begin{align}
+\frac{\int_{b\in P([k])}S_n(b)db}{\int_{b\in P([k])}db}=\prod_{t\in [n]}\frac{\int_{b\in P([k])}S_t(b)db}{\int_{b\in P([k])}S_{t-1}(b)db}=\prod_{t\in [n]}\underbrace{\left(\frac{\int_{b\in P([k])}S_{t-1}(b)b^Tdb}{\int_{b\in P([k])}S_{t-1}(b)db}\right)^T}_{b^T_t}x_t, \label{up2}
+\end{align}
+where we assume that $S_0(b)\equiv 1$. The $b_t$ defined above is non-anticipating, and would yield the same cumulative gain as the left-most term in \eqref{up2}. This strategy is called Universal Portfolio. To get an idea of the presence of exponential weights, take the action set as the probability measure simplex $P([k])$. In each round $t$, action $b\in P([k])$ is sampled from some distribution whose density $p_t(b)$ satisfies
+\begin{align*}
+p_t(b)\propto S_{t-1}(b) = e^{\sum_{s\in [t-1]}\log(b^Tx_s)},
+\end{align*} 
+where $\sum_{s\in [t-1]}\log(b^Tx_s)$ is the cumulative log-return\footnote{Log-return is standard in stock market since the returns are often assume compounded. } under $b$ in $t-1$ consecutive rounds. The learning rate is $1$. 
+
+Denote the cumulative gain under Universal Portfolio by $\hat{S}_n$. 
+Define the sensitivity matrix $J_n(b)$ as
+\begin{align*}
+(J_n(b))_{ij} = \int\frac{(\langle x, e_i\rangle-\langle x, e_m\rangle)(\langle x, e_j\rangle-\langle x, e_m\rangle)}{(b^Tx)^2}dF_n(x)\ \ \ i,j\in [m-1]
+\end{align*}
+where $F_n$ is the empirical distribution of $x_1, \cdots, x_n$. Let $J_n^* = J_n(b^*)$. 
+
+The main theorem in \cite{cover2011universal} is the following:
+\begin{Th}
+Suppose that $x_1, x_2, \cdots, \in [a, c]^m$ for $0<a\leq c<\infty$. Assume that 
+\begin{align*}
+W_n(b):=\frac{1}{n}\sum_{t\in [n]}\log(b^Tx_t)&\nearrow W(b)\ \ \ \ \forall b\in P([k])\\
+b_n^*&\to b^*\\
+J_n^*&\to J^*,
+\end{align*}
+where $W(b)$ is strictly concave, the third partial derivatives of $W$ are bounded on $P([k])$, and $W(b)$ achieves its maximum at $b^*$ in the interior of $P([k])$. Then,
+\begin{align}
+\frac{\hat{S}_n}{S_n^*}\sim\left(\sqrt{\frac{2\pi}{n}}\right)^{m-1}\frac{(m-1)!}{|J^*|^{\frac{1}{2}}}.\label{up4}
+\end{align}
+\end{Th}
+Note that if taking logarithm on both sides of \eqref{up4}, we get the asymptotic regret bound:
+\begin{align*}
+R_n = \log S_n^*-\log\hat{S}_n\sim \mathcal O\left(m\log n\right). 
+\end{align*}
+This is better than the finite-time bound on various algorithms for adversarial linear bandits. This is not surprising since the log-return of stocks is observable at the end of each round so no estimation is needed. 
+
+
+\chapter{Budgeted Bandits}
+\section{Best arm identification}
 The best arm identification problem has a different goal from the classical bandits. Precisely, the objective considered in the former is a simple regret measured only by the decision at the end of the game. Consider drug testing as an example. When new drugs are tested on humans, the test and cure processes coincide. Yet in other situations where drugs are first experimented on mice, it is often the case that cost is negligible; people are mainly concerned with the potential effects on humans later on. As such, learning becomes a pure exploration process. In this section, we will introduce two different formulations of the problem based on the works \cite{audibert2010best,  bubeck2009pure} and \cite{garivier2016optimal}, respectively. 
 
-\subsubsection{Best-arm identification with a budget}
+\subsection{Best-arm identification with a budget}
 
 Consider a ($1$-sub-gaussian) stochastic bandit with fixed horizon $n$, which can also be interpreted as the budget constraint for exploration.  The goal is to minimize the simple regret at step $n+1$:
 \begin{align*}
@@ -1852,7 +1919,7 @@ Compared to UAS, Sequential Halving takes into account the varying scales of the
 
 
 
-\subsubsection{Best-arm identification with a fixed confidence}
+\subsection{Best-arm identification with a fixed confidence}
 
 In the previous part we considered the bandits where the budget is limited by a fixed horizon, and the goal is to minimize the probability of $\psi_n$ being sub-optimal\footnote{The true objective is the expected sub-optimality gap at step $n+1$; however, the way we analyze it is through upper bounding the probability of making an sub-optimal decision.}. We now reverse the roles of the constraint and the objective. Particularly, in the fixed confidence set-up, we are given a confidence level $\delta>0$. The goal is find a good triple $(\pi, \tau, \psi)$: a policy $\pi$, a stopping criterion $\tau$ (stopping time) and a decision function $\psi\in [k]$ (which is measurable to the sigma-algebra determined by $\tau$) such that for any admissible environment $\mu$, 
 \begin{align}
@@ -1939,13 +2006,14 @@ Then, the triple $(\pi, \tau, \psi)$ satisfies \eqref{fc} and
 The choice of $\beta$ follows from the choice of concentration bounds used in the proof. One thing to note is that as $\delta\to\infty$, $\beta_t(\delta)$ is of order $\log(1/\delta)$. 
 \end{Rem}
 
-\subsection{Budget-limited bandits}
+\section{Budget-limited bandits}
 
 Best arm identification problems have separate exploration and exploitation processes, with the former constrained by a budget.  We now consider an alternative model called the budget-limited bandits, where exploration and exploitation interact in a similar way as in the stochastic bandits, and pulling an arm for either purpose comes with a cost. Given a budget, the goal is to find a policy under which the cumulative regret is small when the budget is running out. 
 
-Budget-limited bandits were first introduced in the work \cite{tran2010epsilon}, where each arm is associated with a fixed pulling cost. An algorithm called the $\e$-First Policy was given to solve the corresponding optimization problem, which is similar to Algorithm \ref{alg:ETC} in chapter 1. Due to the difficulty of choosing a boundary between exploration and exploitation, more practical algorithms were proposed in a follow-up paper \cite{tran2012knapsack} by the same authors. Further generalization on relaxing the time-invariant cost can be found in \cite{ding2013multi}. A comprehensive summary of the results in related fields can be found in \cite{zhou2018budget}. In the rest of this section, we will first introduce the set-up of the problem and then give two practical algorithms for it. We will closely follow the discussion in \cite{tran2012knapsack}. 
+Budget-limited bandits were first introduced in \cite{tran2010epsilon}, where each arm is associated with a fixed pulling cost. An algorithm called the $\e$-First Policy was given to solve the corresponding optimization problem, which is similar to Algorithm \ref{alg:ETC} in chapter 1. 
+Due to the difficulty of finding the trade-off between exploration and exploitation, more practical algorithms were proposed in a follow-up paper \cite{tran2012knapsack} by the same authors. Further generalization on relaxing the time-invariant cost can be found in \cite{ding2013multi}. A comprehensive summary of the results in related fields can be found in \cite{zhou2018budget}. In the rest of this section, we will first introduce the set-up of the problem and then give two practical algorithms for it. We will closely follow the discussion in \cite{tran2012knapsack}. 
 
-Consider a $k$-armed stochastic bandit. Let $B>0$ be a fixed budget. For $i\in [k]$, $c_i>0$ is the cost incurred by pulling $i$, and $\mu_i$ is the reward. $c_i$ are constants and known to the players. For simplicity,  we assume that centered reward distributions are $1$-sub-gaussian. Let $\pi$ be a policy under the budget constraint $B$. Let $T_{i,B}$ denote the total number of times played on $i$. It is clear that 
+Consider a $k$-armed stochastic bandit. Let $B>0$ be a fixed budget. For $i\in [k]$, $c_i>0$ is the cost incurred by pulling $i$, and $\mu_i$ is the reward. $c_i$ are constants and known to the players. For simplicity,  we assume that centered reward distributions are $1$-sub-gaussian. Let $\pi$ be a policy under the budget constraint $B$. Let $T_{i,B}$ denote the total number of times played on $i$. The budget constraint enforces that 
 \begin{align}
 \sum_{i\in [k]}c_iT_{i,B}\leq B. \ \ \ a.s..\label{fsb}
 \end{align}
@@ -1957,9 +2025,9 @@ where $\beta_i$ is the total number of times played on $i$ under a deterministic
 \begin{align*}
 &\max_x\sum_{i\in [k]}x_iv_i\\
 &\text{s.t.}\ \sum_{i\in [k]}x_iw_i\leq C, x_{1, \cdots, k}, \ x_i\in\N\  \forall i\in [k]. 
-\end{align*}
-A bound knapsack problem has the same form as the unbounded one but restricts $x_i\in\{0, 1\}$.}, 
-which is known to be NP-hard. However, it can be approximately solved via a density-ordered greedy algorithm, see \cite{Kohli_2004}. Particularly, in each round, one chooses the arm giving the largest reward-to-cost ratio among all arms that could be played using the remaining budget, and plays it as many times as possible. The process terminates when no arm is affordable. If the solutions are allowed to be be fractional, then the optimal solution can be easily calculated as $\beta_i = \mathbb I_{i=i^*}B/c_i$, where $i^*=\argmax_{i\in [k]}\mu_i/c_i$. When $\mu_i$'s are unknown, this near-optimal algorithm can still be carried out but with an additional step of estimating $\mu_i$, for which we will use the UCB. 
+\end{align*}}
+%A bound knapsack problem has the same form as the unbounded one but restricts $x_i\in\{0, 1\}$.}, 
+which is known to be NP-hard. However, it can be approximately solved via a density-ordered greedy algorithm, see \cite{Kohli_2004}. Particularly, in each round, one chooses the arm giving the largest reward-to-cost ratio among all arms that could be played using the remaining budget, and plays it as many times as possible. The process terminates when no arm is affordable. If the solutions are allowed to be be fractional, then the optimal solution can be easily calculated as $\beta_i = \mathbb I_{i=i^*}B/c_i$, where $i^*=\argmax_{i\in [k]}\mu_i/c_i$. When $\mu_i$'s are unknown, this near-optimal algorithm can still be carried out but with an additional step of estimating $\mu_i$, for which we will use UCB on offer optimism. 
 
 The following algorithms, termed knapsack-based upper confidence bound exploration and exploitation (KUBE) and fractional knapsack-based upper confidence bound exploration and exploitation (fractional KUBE), respectively, combine the ideas from unbounded knapsack problems and UCB to provide a practical strategy for budgeted bandit learning. 
 
@@ -1971,7 +2039,7 @@ The following algorithms, termed knapsack-based upper confidence bound explorati
  \WHILE{pulling is feasible}
  \STATE $\mathcal A_t = \{i\in [k]: c_i\leq B_t\}$;
 \STATE For $i\in\mathcal A_t$, compute its $\delta$-UCB: $\text{UCB}_i$ 
-\STATE Use $\text{UCB}_i$ as the mean and approximately solve the corresponding knapsack problem via the density-ordered greedy algorithm. Denote the solution as $m_{i,t}$ for each $i\in\mathcal A_t$.\ \ \ \tcp{KUBE only}
+\STATE Use $\text{UCB}_i$ as the mean and approximately solve the corresponding knapsack problem via the density-ordered greedy algorithm. Denote the solution as $m_{i,t}$ for each $i\in\mathcal A_t$.\ \ \ \tcp{This step is for KUBE only}
 \STATE \begin{align*}
 \pi_t &\sim p_t,\ \text{where}\ p_t(i)=\frac{m_{i,t}}{\sum_{i\in\mathcal A_t}m_{i,t}}  \ \ \ \text{(KUBE)} \\
 \pi_t &= \argmax_{i\in\mathcal A_t}\frac{\text{UCB}_i}{c_i} \ \ \ \text{(fractional KUBE)}
@@ -1980,14 +2048,16 @@ The following algorithms, termed knapsack-based upper confidence bound explorati
 \STATE $t = t+1$
 \ENDWHILE
 \end{algorithmic}
-\caption{The KUBE/fractional KUBE Algorithm. } 
+\caption{The KUBE/fractional KUBE Algorithm} 
 \label{alg:KUBE}
 \end{algorithm}
 
 In \cite{tran2012knapsack}, $\delta$ is selected adaptively as in \cite{auer2002finite}, with $\delta_t = t^{-1}$. Here, we set $\delta = B^{-2}$ and prove an optimal instance bound for the regret in fractional KUBE. SImilar results can be proved for KUBE but with more involved calculations. 
 
 \begin{Th}\label{thm:KUBE}
-Let $\delta=B^{-2}$. For $i\in [k]$, define the reward-to-cost ratio as $r_i=\mu_i/c_i$, and let $i^* = \argmax_{i\in [k]}r_i$. Let $\Delta_i = r_{i^*}-r_i$ be the reward-to-cost ratio gap. Let $c_{\min} = \min_{i\in [k]}c_i$ and $c_{\max} = \max_{i\in [k]}c_i$. Suppose $B\geq c_{\min}k$ (which is not essential but makes the statement simpler). The regret in the fractional KUBE algorithm is bounded by
+Let $\delta=B^{-2}$. For $i\in [k]$, define the reward-to-cost ratio as $r_i=\mu_i/c_i$, and let $i^* = \argmax_{i\in [k]}r_i$. Let $\Delta_i = r_{i^*}-r_i$ be the reward-to-cost ratio gap. 
+Let $c_{\min} = \min_{i\in [k]}c_i$. %and $c_{\max} = \max_{i\in [k]}c_i$. 
+Suppose $B\geq c_{\min}k$ (which is not essential but makes the statement simpler). The regret in the fractional KUBE algorithm is bounded by
 \end{Th}
 \begin{align*}
 R_B\leq\frac{2r_{i^*}}{c_{\min}}+16\log B\sum_{i: \Delta_i>0}\frac{1}{c_i\Delta_i}.
@@ -2001,7 +2071,7 @@ R_B\leq r_{i^*}B-\sum_{i\in [k]}\E[T_{i,B}]\mu_i.
 Let $n = \min\{t: B_{t+1}\leq c_{\min}\}$.  
 It is clear that 
 \begin{align*}
-\frac{B}{c_{\max}}\leq n\leq\frac{B}{c_{\min}}\ \ \ a.s.. 
+n\leq\frac{B}{c_{\min}}\ \ \ a.s.. 
 \end{align*}
 Therefore, with probability at least $1-c_{\min}^{-1}B\delta$, 
 \begin{align}
@@ -2023,19 +2093,20 @@ When $c_i=1$ for all $i\in [k]$, the budgeted bandit problem is equivalent to th
 \end{Rem}
 
 \begin{Rem}
-The regret bound for KUBE derived in \cite{tran2012knapsack} is less optimal than the one for fractional KUBE, in terms of the constants. However, numerical experiments in \cite{tran2012knapsack} showed that KUBE outperformed fractional KUBE by a $30-40\%$ margin. It is not clear why this occurs based on the analysis in the paper. On the other hand, at each step, fractional KUBE has smaller computational cost compared to KUEB, which requires a complete sort of the estimated reward-to-ratio values for each arm\footnote{Note that KUBE updates the reward-to-ratio value of one arm at a time, so it might be negligible.}. 
+The regret bound for KUBE derived in \cite{tran2012knapsack} is less optimal than the one for fractional KUBE, in terms of the constants. However, numerical experiments in \cite{tran2012knapsack} showed that KUBE outperformed fractional KUBE by a $30$-$40\%$ margin. It is not yet clear why this occurs. On the other hand, at each step, fractional KUBE has smaller computational cost compared to KUEB, which requires a complete sort of the estimated reward-to-ratio values for each arm\footnote{Note that KUBE updates the reward-to-ratio value of one arm at a time, so it might be negligible.}. 
 \end{Rem}
 
-\subsection{Thompson sampling for budgeted bandits}
+\begin{Rem}
+Fixed cost assumption could be restrictive in some circumstances. A possible generalization is to assume that costs generated by the same arm are i.i.d. random variables. In this case, an extra step is needed to estimate the mean cost for each arm per round thus the upper confidence bonus requires some modification. This leads to the so-called UCB with Budget constraint and Variable cost algorithm (UCB-BV),  see \cite{ding2013multi}. Of course, one may also use the idea of Thompson sampling as described in Algorithm \ref{alg:TS}, sampling the reward and cost parameters from the two independent posterior distributions, respectively, and choosing the arm giving the best reward-to-cost ratio. This is the Budgeted Thompson Sampling (BTS). For more information, see \cite{xia2015thompson}. Analysis of more general cost assumptions can be found in \cite{cayci2020budget}.  
+\end{Rem}
 
 
-\newpage
  
-\section{Markovian Bandits}
+\chapter{Markovian Bandits}\label{ch:5}
 
-\subsection{Gittins index}
+\section{Gittins index}
 
-\subsection{Upper confidence bounds for reinforcement learning}
+\section{Upper confidence bounds for reinforcement learning}
 
 
 
