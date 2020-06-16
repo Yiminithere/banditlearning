@@ -1,6 +1,5 @@
-%\documentclass[11pt,a4article]{amsart}
 %\documentclass[9pt,a4article]{article}
-\documentclass[10pt, openright]{book}
+\documentclass[letterpaper,10pt,openright,openany]{book}
 \usepackage{amsmath,amsthm,amsfonts,verbatim,amscd,graphicx,amssymb}
 \usepackage{mathtools}
 \usepackage[ruled,vlined]{algorithm2e}
@@ -11,7 +10,7 @@
 \usepackage{pict2e}
 \usepackage{epic}
 \numberwithin{equation}{section}
-\usepackage[margin=3.5cm]{geometry}
+\usepackage[margin=3.2cm]{geometry}
 \usepackage{epstopdf}
 \usepackage[dvipsnames]{xcolor}
 \usepackage{CJK}
@@ -1662,7 +1661,7 @@ R_n = \log S_n^*-\log\hat{S}_n\sim \mathcal O\left(m\log n\right).
 This is better than the finite-time bound on various algorithms for adversarial linear bandits. This is not surprising since the log-return of stocks is observable at the end of each round so no estimation is needed. 
 
 
-\chapter{Budgeted Bandits}
+\chapter{Bandits with Cost}
 \section{Best arm identification}
 The best arm identification problem has a different goal from the classical bandits. Precisely, the objective considered in the former is a simple regret measured only by the decision at the end of the game. Consider drug testing as an example. When new drugs are tested on humans, the test and cure processes coincide. Yet in other situations where drugs are first experimented on mice, it is often the case that cost is negligible; people are mainly concerned with the potential effects on humans later on. As such, learning becomes a pure exploration process. In this section, we will introduce two different formulations of the problem based on the works \cite{audibert2010best,  bubeck2009pure} and \cite{garivier2016optimal}, respectively. 
 
@@ -2037,9 +2036,9 @@ The following algorithms, termed knapsack-based upper confidence bound explorati
  \begin{algorithmic}[1]
  \STATE \textbf{Initialization}: $t=1$ and $B_1=B$
  \WHILE{pulling is feasible}
- \STATE $\mathcal A_t = \{i\in [k]: c_i\leq B_t\}$;
+ \STATE $\mathcal A_t = \{i\in [k]: c_i\leq B_t\}$
 \STATE For $i\in\mathcal A_t$, compute its $\delta$-UCB: $\text{UCB}_i$ 
-\STATE Use $\text{UCB}_i$ as the mean and approximately solve the corresponding knapsack problem via the density-ordered greedy algorithm. Denote the solution as $m_{i,t}$ for each $i\in\mathcal A_t$.\ \ \ \tcp{This step is for KUBE only}
+\STATE Use $\text{UCB}_i$ as the mean and approximately solve the corresponding knapsack problem via the density-ordered greedy algorithm. Denote the solution as $m_{i,t}$ for each $i\in\mathcal A_t$\ \ \ \tcp{This step is for KUBE only}
 \STATE \begin{align*}
 \pi_t &\sim p_t,\ \text{where}\ p_t(i)=\frac{m_{i,t}}{\sum_{i\in\mathcal A_t}m_{i,t}}  \ \ \ \text{(KUBE)} \\
 \pi_t &= \argmax_{i\in\mathcal A_t}\frac{\text{UCB}_i}{c_i} \ \ \ \text{(fractional KUBE)}
@@ -2101,7 +2100,101 @@ Fixed cost assumption could be restrictive in some circumstances. A possible gen
 \end{Rem}
 
 
+\section{Multi-fidelity bandits}
+We consider an alternative model called multi-fidelity bandits \cite{kandasamy2016multi} where both exploration and exploitation are carried out under a budget constraint. 
+This is similar to the budget-limited bandits as discussed in the previous section. 
+However, in a multi-fidelity bandit, instead of attaching a pulling cost to different arms, it assumes that the reward of each arm can be observed at $M$ different fidelities, with each fidelity $m\in [M]$ costing $\lambda^{(m)}$ for an observation. 
+Often, a fidelity represents an approximation to the original problem from the computational side. 
+A high-fidelity observation has better accuracy and is therefore associated with a high cost. 
+In the following we assume that 
+\begin{itemize}
+\item $0<\lambda^{(1)}\leq\lambda^{(2)}\leq\cdots\leq\lambda^{(M)}$;
+\item Denote by $\{\xi^{(m)}\}_{m\in [M]}$ the approximation errors which is a decreasing sequence in $m$ with $\xi^{(M)}=0$. 
+For every $i\in [k]$ and $m\in [M]$, the $m$-fidelity approximation (mean) for $\mu_i$ is $\mu_i^{(m)}$, and satisfies  $|\mu_i-\mu_i^{(m)}|\leq\xi^{(m)}$;
+\item For each arm, the observation at fidelity $m$ is a $1$-sub-gaussian random variable\footnote{Sub-gaussian assumption can be slightly generalized, see \cite{kandasamy2016multi}.}.
+\end{itemize}
+
+Let $\Lambda>0$ be the budget. Let $\pi_t$ be a policy at time $t$. Here $\pi_t=(\pi_{t,1}, \pi_{t,2})$ consists of both the arm to play as well as the corresponding fidelity. Let $n=\max\{t:\sum_{s=1}^t\lambda^{(\pi_{s2})}\leq\Lambda\}$. To motivate the definition of the regret, note that playing the same arm using different fidelities lead to different absolute cumulative rewards.
+This problem occurs because $\mu$ is interpreted as the average reward per time, which does not scale with the budget under the multi-fidelity setting. 
+Therefore, in this case, it would be more natural to consider budget-normalized expected rewards. 
+For $i\in [k]$, $\mu_i$ is interpreted as the average reward by utilizing a unit of the budget. 
+This sets a stark distinction between multi-fidelity bandits and budget-limited bandits. 
+Treating a unit of budget as an attempt in exploration, an $m$-fidelity estimate for $\mu_i$ then requires exploring $i$ $\lambda^{(m)}$ times.  
+This somehow reminds us of some algorithms we have seen before, such as the ETC and the Elimination algorithm. 
+The difference, however, is that a low-fidelity (poor exploration) affects the bias of the estimator instead of its variance. 
+Based on these observations, we define the regret for multi-fidelity bandits as 
+\begin{align*}
+R_\Lambda=\Lambda\mu_{i^*}-\E\left[\sum_{t\in [n]}\lambda^{(\pi_{t,2})}\mu_{\pi_{t,1}}\right],
+\end{align*}
+where $i^*$ is the optimal arm. It is easy to check that up to a constant, $R_\Lambda$ can be written as 
+\begin{align*}
+R_\Lambda = \E\left[\sum_{t\in [n]}\lambda^{(\pi_{t,2})}\Delta_{\pi_{t,1}}\right] + \text{constant},
+\end{align*}
+where $\Delta_i$ is the sub-optimality gap between $i$ and $i^*$. We will now leave the constant term out since it will not affect the order of the bound for the regret. To get a decomposition of $R_\Lambda$ as in \eqref{s:2}, we need a few more notations. Let $T_{i,t}^{(m)}$ be the number of times of playing $i$ at fidelity $m$ before time $t$.  Then, 
+\begin{align*}
+R_\Lambda = \sum_{i\in [k]}\Delta_i\sum_{m\in [M]}\lambda^{(m)}\E\left[T_{i,n}^{(m)}\right]. 
+\end{align*}
+We now describe an algorithm called the Multi-fidelity UCB (MF-UCB) that resembles the Elimination algorithm in Algorithm \ref{alg:elimination}. For each $i\in [k]$, MF-UCB starts with the low-fidelity estimate for $\mu_i$. An upper confidence criterion is then used to determine which arm to play in the next round. The fidelity will be chosen as the lowest fidelity on which the arm needs further exploration. The details of the algorithm are given below:
+
+\begin{algorithm}[H]
+ \KwIn{$\gamma^{(m)}$: fidelity update parameters; $\Lambda$: budget; $\xi^{(m)}$: fidelity approximation errors}
+ \KwOut{$\pi=(\pi_t)_{t\in [n]}$; $\rho$: confidence level}
+ \begin{algorithmic}[1]
+ \STATE \textbf{Initialization}: Play each arm once and observe using the lowest fidelity; $t=k+1$ and $\Lambda_t = \Lambda - k\lambda^{(1)}$
+ \WHILE{pulling is feasible}
+ \FOR{$i = 1, \cdots, k$ }
+ \FOR{$m = 1,\cdots, M$}
+ \STATE $\mathcal B_{i,t}^{(m)} = \hat{\mu}^{(m)}_{i, t-1}+\sqrt{\frac{\rho\log t}{s}}+\xi^{(m)}$\ \ \ \ \ \tcp{optimistic estimate using UCB and the fidelity approximation error}
+ \ENDFOR
+ \STATE $\mathcal B_{i,t} = \min_{m\in [M]}\mathcal B_{i,t}^{(m)}$ \ \ \ \ \tcp{Be conservative while being optimistic}
+ \ENDFOR
+\STATE $\pi_{t,1} = \argmax_{i\in [k]}\mathcal B_{i,t}$
+\STATE $\pi_{t,2} = \min\left\{m\leq M: \sqrt{\rho\log t/T^{(m)}_{\pi_{t,1}, t-1}}\geq\gamma^{(m)}\right\}$ \ \ \ \ \ \ \tcp{determine the lowest fidelity which is under-explored}
+\STATE $\Lambda_{t+1} = \Lambda_t - \lambda^{(\pi_{t,2})}$
+\STATE $t = t+1$
+\ENDWHILE
+\end{algorithmic}
+\caption{The MF-UCB Algorithm} 
+\label{alg:MF-UCB}
+\end{algorithm}
+
+The second term in $\mathcal B_{i,t}^{(m)}$ comes from the confidence level under the sub-gaussian assumption. The third term in $\mathcal B_{i,t}^{(m)}$ is the error of the $m$-fidelity approximation, which will not be affected as $T^{(m)}_{i, t-1}$ increases. Therefore, when $T^{(m)}_{i, t-1}$ is so large that the upper confidence bonus falls in the same level as $\xi^{(m)}$, one should go to the next fidelity for exploration. This observation suggests choosing $\gamma^{(m)}$ as $\gamma^{(m)}=\mathcal O(\xi^{(m)})$. Indeed, it was shown in \cite{kandasamy2016multi} that taking  
+\begin{align*}
+\gamma^{(m)} = \sqrt{\frac{\lambda^{(m)}}{\lambda^{(m+1)}}}\xi^{(m)}\leq\xi^{(m)}
+\end{align*}
+gives a good trade-off. 
+
+In order to see how Algorithm \ref{alg:MF-UCB} works, note that $\min_{t}\mathcal B_{i^*,t}$ never falls below $\mu_{i^*}$ with high probability. We now conditional on this event. For each sub-optimal $i\in [k]$, it will be played regularly until it enters the $m$-fidelity approximation where 
+\begin{align}
+\mu_{i^*}-(\mu^{(m)}_i+\xi^{(m)})\geq (1+c)\xi^{(m)}\geq (1+c)\gamma^{(m)}\label{341}
+\end{align}
+for some $c>0$. We may choose $c=1$ for convenience. 
+Let $$\mathcal K^{(m)}=\{i\in [k]: \text{\eqref{341} holds for $m$ and does not hold for $m'<m$}\}.$$
+We expect that first $m$ fidelities are able to identify the sub-optimality of the arms in $\mathcal K^{(m)}$ with high probability. This is made precise by the following theorem:
+
+\begin{Th}
+Let $\rho>4$. There exists some $\Lambda_0>0$ such that for all $\Lambda>\Lambda_0$, 
+\begin{align*}
+R_\Lambda \leq\log\left(\frac{\Lambda}{\lambda^{(M)}}\right)\sum_{m\in [M]}\sum_{i\in\mathcal K^{(m)}}\Delta_i\frac{\lambda^{(m)}}{(\mu_{i^*}-(\mu^{(m)}_i+\xi^{(m)}))^2}.
+\end{align*}
+\end{Th}
+
+The details of the proof can be found in \cite{kandasamy2016multi}. Here we give two remarks on the immediate consequences. 
+
+\begin{Rem}
+It is clear from the analysis above that the arms with large sub-optimality gaps can be identified using low-fidelity approximations, i.e., they belong to $\mathcal K^{(m)}$ where $m$ is small. Those with small sub-optimality gaps will finally end up in the $M$-fidelity phase. This implies that MF-UCB works no differently from the original UCB for the hard-to-distinguish arms, but makes it more economical to find the easy-to-distinguish ones provided that a multi-fidelity approximation scheme is available. 
+\end{Rem}
+
+\begin{Rem}
+It is easy to check that MF-UCB is at most a constant times worse than UCB. On the other hand, one would expect that MF-UCB demonstrates a superior performance over UCB if for $i\in\mathcal K^{(m)}$, $\mu_{i^*}-(\mu^{(m)}_i+\xi^{(m)})$ is close to $\Delta_i$, and $\lambda^{(M)}>>\lambda^{(m)}$. A possible formulation of the former is the following fast decay condition:
+\begin{align*}
+\sum_{\ell\in [m]}\frac{1}{(\xi^{(\ell)})^2}\leq\frac{1}{(\xi^{(m+1)})^2}. 
+\end{align*} 
+\end{Rem}
+
+
  
+
 \chapter{Markovian Bandits}\label{ch:5}
 
 \section{Gittins index}
