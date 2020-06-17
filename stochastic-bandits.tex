@@ -10,12 +10,16 @@
 \usepackage{pict2e}
 \usepackage{epic}
 \numberwithin{equation}{section}
-\usepackage[margin=3.2cm]{geometry}
+\usepackage[margin=3.7cm]{geometry}
 \usepackage{epstopdf}
 \usepackage[dvipsnames]{xcolor}
 \usepackage{CJK}
 \usepackage[colorlinks, linkcolor = purple, citecolor=blue]{hyperref}
 \usepackage{algorithmic}
+
+\usepackage[T1]{fontenc}
+\usepackage{stix}
+
 
 
 \usepackage[backend=biber,date=year,giveninits=true,sorting=nyt,style=alphabetic,natbib=true,maxcitenames=2,maxbibnames=10,url=false,doi=true,backref=false]{biblatex}
@@ -1626,7 +1630,7 @@ The solution (assumed unique) of \eqref{up3} is denoted by $b_n^*$. Intuitively,
 \end{align}
 On the other hand, note that $S_t(b)$ depends on the stock price in the first $t$ rounds. To make the right-hand side of \eqref{up1} into a non-anticipating strategy, write
 \begin{align}
-\frac{\int_{b\in P([k])}S_n(b)db}{\int_{b\in P([k])}db}=\prod_{t\in [n]}\frac{\int_{b\in P([k])}S_t(b)db}{\int_{b\in P([k])}S_{t-1}(b)db}=\prod_{t\in [n]}\underbrace{\left(\frac{\int_{b\in P([k])}S_{t-1}(b)b^Tdb}{\int_{b\in P([k])}S_{t-1}(b)db}\right)^T}_{b^T_t}x_t, \label{up2}
+\frac{\int_{b\in P([k])}S_n(b)db}{\int_{b\in P([k])}db}=\prod_{t\in [n]}\frac{\int_{b\in P([k])}S_t(b)db}{\int_{b\in P([k])}S_{t-1}(b)db}=\prod_{t\in [n]}\underbrace{\left(\frac{\int_{b\in P([k])}S_{t-1}(b)bdb}{\int_{b\in P([k])}S_{t-1}(b)db}\right)^T}_{b^T_t}x_t, \label{up2}
 \end{align}
 where we assume that $S_0(b)\equiv 1$. The $b_t$ defined above is non-anticipating, and would yield the same cumulative gain as the left-most term in \eqref{up2}. This strategy is called Universal Portfolio. To get an idea of the presence of exponential weights, take the action set as the probability measure simplex $P([k])$. In each round $t$, action $b\in P([k])$ is sampled from some distribution whose density $p_t(b)$ satisfies
 \begin{align*}
@@ -1634,7 +1638,13 @@ p_t(b)\propto S_{t-1}(b) = e^{\sum_{s\in [t-1]}\log(b^Tx_s)},
 \end{align*} 
 where $\sum_{s\in [t-1]}\log(b^Tx_s)$ is the cumulative log-return\footnote{Log-return is standard in stock market since the returns are often assume compounded. } under $b$ in $t-1$ consecutive rounds. The learning rate is $1$. 
 
-Denote the cumulative gain under Universal Portfolio by $\hat{S}_n$. 
+Denote the cumulative gain under Universal Portfolio by $\hat{S}_n$.
+Using Jensen's inequality twice, one could check that Universal Portfolio exceeds value line index, which is defined as the geometric mean of the single portfolios:
+\begin{align*}
+\hat{S}_n\geq\left(\prod_{i\in [k]}S_n(e_i)\right)^{\frac{1}{k}},
+\end{align*}
+where $e_i$'s are the canonical basis in $\R^k$. 
+
 Define the sensitivity matrix $J_n(b)$ as
 \begin{align*}
 (J_n(b))_{ij} = \int\frac{(\langle x, e_i\rangle-\langle x, e_m\rangle)(\langle x, e_j\rangle-\langle x, e_m\rangle)}{(b^Tx)^2}dF_n(x)\ \ \ i,j\in [m-1]
@@ -1659,6 +1669,27 @@ Note that if taking logarithm on both sides of \eqref{up4}, we get the asymptoti
 R_n = \log S_n^*-\log\hat{S}_n\sim \mathcal O\left(m\log n\right). 
 \end{align*}
 This is better than the finite-time bound on various algorithms for adversarial linear bandits. This is not surprising since the log-return of stocks is observable at the end of each round so no estimation is needed. 
+
+We end this section by applying Universal Portfolio to a real dataset. 
+Since our result is of asymptotic flavor, we need to use stocks which have sufficient historical data. 
+Particularly, we will use the stock data\footnote{The dataset can be downloaded from \href{https://finance.yahoo.com/}{https://finance.yahoo.com/}.} of the four largest banks in the US (in terms of their assets): JPMorgan Chase (JPM), Bank of America (BAC), Citigroup (C) and Wells Fargo \& Co. (WFC). 
+The whole time span is set from June $1990$ to June $2020$, and portfolio rebalancing is conducted on a monthly basis. 
+The stock market vector is the closing price at the end of each month divided by the opening price at the beginning of the same month.
+We apply the Universal Portfolio \footnote{The integrals used in weighting are calculated using Monte-Carlo approximation with $10000$ samples.} to the dataset and the simulation results are given in Firgure \ref{fig:UP}.
+
+\begin{figure}[h!]
+\centering
+  \includegraphics[width=10 cm]{UP.pdf}
+  \caption{Simulation of Universal Portfolio on the dataset of the four largest banks in the US. Time period: $1990$-$2020$. }
+  \label{fig:UP}
+\end{figure}
+
+The cumulative gain under Universal Portfolio is $\hat{S}_n = 7.52$. The cumulative gains for solely investing in JPM, BAC, C and WFC are $7.87$, $2.91$, $1.20$ and $10.32$, respectively. 
+The value line index in this case is $4.11$, which is surpassed by $\hat{S}_n$. We also calculate the best constant portfolio in hindsight. 
+The approximate solution is given by $b_n^*=(0.4, 0, 0, 0.6)^T$ ($0.4$ for JPM and $0.6$ for WFC), and the corresponding cumulative gain is around $12.60$. This is close to investing only in WFC for $30$ years.  
+However, putting all the money in a single basket is extremely risky, so be cautious! 
+
+
 
 
 \chapter{Bandits with Cost}
@@ -2101,25 +2132,29 @@ Fixed cost assumption could be restrictive in some circumstances. A possible gen
 
 
 \section{Multi-fidelity bandits}
-We consider an alternative model called multi-fidelity bandits \cite{kandasamy2016multi} where both exploration and exploitation are carried out under a budget constraint. 
-This is similar to the budget-limited bandits as discussed in the previous section. 
-However, in a multi-fidelity bandit, instead of attaching a pulling cost to different arms, it assumes that the reward of each arm can be observed at $M$ different fidelities, with each fidelity $m\in [M]$ costing $\lambda^{(m)}$ for an observation. 
+We consider an alternative budget bandit model called multi-fidelity bandits \cite{kandasamy2016multi}.
+Similar to the budget-limited bandits in the previous section, multi-fidelity bandits also involve a budget constraint that should not be surpassed.
+However, the cost assumption in a multi-fidelity bandit is quite different.  
+Instead of attaching a pulling cost to the $k$ arms respectively, it assumes that the reward of each arm can be observed at $M$ different fidelities, with each fidelity $m\in [M]$ costing $\lambda^{(m)}$ for an observation. 
 Often, a fidelity represents an approximation to the original problem from the computational side. 
-A high-fidelity observation has better accuracy and is therefore associated with a high cost. 
+A high-fidelity observation has better accuracy and is therefore associated with a larger cost. 
 In the following we assume that 
 \begin{itemize}
-\item $0<\lambda^{(1)}\leq\lambda^{(2)}\leq\cdots\leq\lambda^{(M)}$;
+\item Cost is a strict increasing function with fidelity. Particularly, $0<\lambda^{(1)}<\lambda^{(2)}\leq\cdots<\lambda^{(M)}$;
 \item Denote by $\{\xi^{(m)}\}_{m\in [M]}$ the approximation errors which is a decreasing sequence in $m$ with $\xi^{(M)}=0$. 
 For every $i\in [k]$ and $m\in [M]$, the $m$-fidelity approximation (mean) for $\mu_i$ is $\mu_i^{(m)}$, and satisfies  $|\mu_i-\mu_i^{(m)}|\leq\xi^{(m)}$;
-\item For each arm, the observation at fidelity $m$ is a $1$-sub-gaussian random variable\footnote{Sub-gaussian assumption can be slightly generalized, see \cite{kandasamy2016multi}.}.
+\item For each arm, the observation at fidelity $m$ is a $1$-sub-gaussian random variable\footnote{Sub-gaussian assumption can be generalized as long as appropriate concentration inequalities exists. }
 \end{itemize}
 
-Let $\Lambda>0$ be the budget. Let $\pi_t$ be a policy at time $t$. Here $\pi_t=(\pi_{t,1}, \pi_{t,2})$ consists of both the arm to play as well as the corresponding fidelity. Let $n=\max\{t:\sum_{s=1}^t\lambda^{(\pi_{s2})}\leq\Lambda\}$. To motivate the definition of the regret, note that playing the same arm using different fidelities lead to different absolute cumulative rewards.
-This problem occurs because $\mu$ is interpreted as the average reward per time, which does not scale with the budget under the multi-fidelity setting. 
-Therefore, in this case, it would be more natural to consider budget-normalized expected rewards. 
+Let $\Lambda>0$ be the budget. Let $\pi_t$ be a policy. Here $\pi_t=(\pi_{t,1}, \pi_{t,2})$, where the first component is the arm to play and the second component is the chosen fidelity. 
+Let $$n=\max\left\{t:\sum_{s=1}^t\lambda^{(\pi_{s, 2})}\leq\Lambda\right\}.$$ To motivate the definition of the regret, note that our goal is the learn the $M$-fidelity mean reward at each arm, and playing the same arm using different fidelities lead to different absolute cumulative rewards.
+This is obviously not we have intended to get.  
+The problem here is the interpretation of $\mu$ as the average reward per time, which does not scale with the budget under the multi-fidelity setting. 
+In this case, it would be more natural to consider budget-normalized expected rewards. 
 For $i\in [k]$, $\mu_i$ is interpreted as the average reward by utilizing a unit of the budget. 
 This sets a stark distinction between multi-fidelity bandits and budget-limited bandits. 
-Treating a unit of budget as an attempt in exploration, an $m$-fidelity estimate for $\mu_i$ then requires exploring $i$ $\lambda^{(m)}$ times.  
+Treat a unit of budget as an attempt in exploration. 
+An $m$-fidelity estimate for $\mu_i$ then requires exploring $i$ $\lambda^{(m)}$ times.  
 This somehow reminds us of some algorithms we have seen before, such as the ETC and the Elimination algorithm. 
 The difference, however, is that a low-fidelity (poor exploration) affects the bias of the estimator instead of its variance. 
 Based on these observations, we define the regret for multi-fidelity bandits as 
@@ -2128,28 +2163,30 @@ R_\Lambda=\Lambda\mu_{i^*}-\E\left[\sum_{t\in [n]}\lambda^{(\pi_{t,2})}\mu_{\pi_
 \end{align*}
 where $i^*$ is the optimal arm. It is easy to check that up to a constant, $R_\Lambda$ can be written as 
 \begin{align*}
-R_\Lambda = \E\left[\sum_{t\in [n]}\lambda^{(\pi_{t,2})}\Delta_{\pi_{t,1}}\right] + \text{constant},
+ \E\left[\sum_{t\in [n]}\lambda^{(\pi_{t,2})}\Delta_{\pi_{t,1}}\right]\leq R_\Lambda = \E\left[\sum_{t\in [n]}\lambda^{(\pi_{t,2})}\Delta_{\pi_{t,1}}\right] + \text{constant term},
 \end{align*}
-where $\Delta_i$ is the sub-optimality gap between $i$ and $i^*$. We will now leave the constant term out since it will not affect the order of the bound for the regret. To get a decomposition of $R_\Lambda$ as in \eqref{s:2}, we need a few more notations. Let $T_{i,t}^{(m)}$ be the number of times of playing $i$ at fidelity $m$ before time $t$.  Then, 
+where $\Delta_i$ is the sub-optimality gap between $i$ and $i^*$. We will now leave the constant term out since it will not affect the order of the bound for $R_\Lambda$. To get a decomposition of $R_\Lambda$ as in \eqref{s:2}, we need a few more notations. Let $T_{i,t}^{(m)}$ be the number of times of playing $i$ at fidelity $m$ before time $t$.  Then, 
 \begin{align*}
 R_\Lambda = \sum_{i\in [k]}\Delta_i\sum_{m\in [M]}\lambda^{(m)}\E\left[T_{i,n}^{(m)}\right]. 
 \end{align*}
-We now describe an algorithm called the Multi-fidelity UCB (MF-UCB) that resembles the Elimination algorithm in Algorithm \ref{alg:elimination}. For each $i\in [k]$, MF-UCB starts with the low-fidelity estimate for $\mu_i$. An upper confidence criterion is then used to determine which arm to play in the next round. The fidelity will be chosen as the lowest fidelity on which the arm needs further exploration. The details of the algorithm are given below:
+We now describe an algorithm called the Multi-fidelity UCB (MF-UCB) for learning in multi-fidelity bandits. 
+MF-UCB was first introduced in \cite{kandasamy2016multi}; it is algorithmic structure resembles the Elimination algorithm in Algorithm \ref{alg:elimination}. 
+For each $i\in [k]$, MF-UCB starts with the low-fidelity estimate for $\mu_i$. An upper confidence criterion is then used to determine which arm to play in the next round. The fidelity will be chosen as the lowest fidelity on which the arm needs further exploration. The details of the algorithm are given as follows:
 
 \begin{algorithm}[H]
- \KwIn{$\gamma^{(m)}$: fidelity update parameters; $\Lambda$: budget; $\xi^{(m)}$: fidelity approximation errors}
- \KwOut{$\pi=(\pi_t)_{t\in [n]}$; $\rho$: confidence level}
+ \KwIn{$\gamma^{(m)}$: fidelity update parameters; $\Lambda$: budget; $\xi^{(m)}$: fidelity approximation errors; $\rho$: confidence level parameter}
+ \KwOut{$\pi=(\pi_t)_{t\in [n]}$}
  \begin{algorithmic}[1]
  \STATE \textbf{Initialization}: Play each arm once and observe using the lowest fidelity; $t=k+1$ and $\Lambda_t = \Lambda - k\lambda^{(1)}$
  \WHILE{pulling is feasible}
  \FOR{$i = 1, \cdots, k$ }
  \FOR{$m = 1,\cdots, M$}
- \STATE $\mathcal B_{i,t}^{(m)} = \hat{\mu}^{(m)}_{i, t-1}+\sqrt{\frac{\rho\log t}{s}}+\xi^{(m)}$\ \ \ \ \ \tcp{optimistic estimate using UCB and the fidelity approximation error}
+ \STATE $\mathcal B_{i,t}^{(m)} = \hat{\mu}^{(m)}_{i, t-1}+\sqrt{\frac{\rho\log t}{T^{(m)}_{i, t-1}}}+\xi^{(m)},$\ \ \ \ \ \tcp{optimistic estimate using UCB and the fidelity approximation error} where $\hat{\mu}^{(m)}_{i, t-1}$ is the sample mean of $\mu_{i}^{(m)}$ estimated before $t$. 
  \ENDFOR
  \STATE $\mathcal B_{i,t} = \min_{m\in [M]}\mathcal B_{i,t}^{(m)}$ \ \ \ \ \tcp{Be conservative while being optimistic}
  \ENDFOR
 \STATE $\pi_{t,1} = \argmax_{i\in [k]}\mathcal B_{i,t}$
-\STATE $\pi_{t,2} = \min\left\{m\leq M: \sqrt{\rho\log t/T^{(m)}_{\pi_{t,1}, t-1}}\geq\gamma^{(m)}\right\}$ \ \ \ \ \ \ \tcp{determine the lowest fidelity which is under-explored}
+\STATE $\pi_{t,2} = \min\left\{m\leq M: \sqrt{\rho\log t/T^{(m)}_{\pi_{t,1}, t-1}}\geq\gamma^{(m)}\right\}$ \ \ \ \ \ \ \tcp{determine the lowest under-explored fidelity}
 \STATE $\Lambda_{t+1} = \Lambda_t - \lambda^{(\pi_{t,2})}$
 \STATE $t = t+1$
 \ENDWHILE
@@ -2158,15 +2195,15 @@ We now describe an algorithm called the Multi-fidelity UCB (MF-UCB) that resembl
 \label{alg:MF-UCB}
 \end{algorithm}
 
-The second term in $\mathcal B_{i,t}^{(m)}$ comes from the confidence level under the sub-gaussian assumption. The third term in $\mathcal B_{i,t}^{(m)}$ is the error of the $m$-fidelity approximation, which will not be affected as $T^{(m)}_{i, t-1}$ increases. Therefore, when $T^{(m)}_{i, t-1}$ is so large that the upper confidence bonus falls in the same level as $\xi^{(m)}$, one should go to the next fidelity for exploration. This observation suggests choosing $\gamma^{(m)}$ as $\gamma^{(m)}=\mathcal O(\xi^{(m)})$. Indeed, it was shown in \cite{kandasamy2016multi} that taking  
+In the definition of $\mathcal B_{i,t}^{(m)}$, the second term comes from the confidence level under the sub-gaussian assumption, and the third term is the error of the $m$-fidelity approximation, which will not be affected as $T^{(m)}_{i, t-1}$ increases. Therefore, when $T^{(m)}_{i, t-1}$ is so large that the upper confidence bonus falls within the same level as $\xi^{(m)}$, one probably should go to the next fidelity for further exploration. This observation suggests choosing $\gamma^{(m)}$ as $\gamma^{(m)}=\mathcal O(\xi^{(m)})$. Indeed, it was shown in \cite{kandasamy2016multi} that taking  
 \begin{align*}
 \gamma^{(m)} = \sqrt{\frac{\lambda^{(m)}}{\lambda^{(m+1)}}}\xi^{(m)}\leq\xi^{(m)}
 \end{align*}
 gives a good trade-off. 
 
-In order to see how Algorithm \ref{alg:MF-UCB} works, note that $\min_{t}\mathcal B_{i^*,t}$ never falls below $\mu_{i^*}$ with high probability. We now conditional on this event. For each sub-optimal $i\in [k]$, it will be played regularly until it enters the $m$-fidelity approximation where 
+In order to see how Algorithm \ref{alg:MF-UCB} works, note that $\min_{t}\mathcal B_{i^*,t}$ never falls below $\mu_{i^*}$ with high probability. We now condition on this event. For each sub-optimal $i\in [k]$, it will be played regularly until it enters the $m$-fidelity approximation where 
 \begin{align}
-\mu_{i^*}-(\mu^{(m)}_i+\xi^{(m)})\geq (1+c)\xi^{(m)}\geq (1+c)\gamma^{(m)}\label{341}
+\mu_{i^*}-(\mu^{(m)}_i+\xi^{(m)})\geq  (1+c)\gamma^{(m)}\label{341}
 \end{align}
 for some $c>0$. We may choose $c=1$ for convenience. 
 Let $$\mathcal K^{(m)}=\{i\in [k]: \text{\eqref{341} holds for $m$ and does not hold for $m'<m$}\}.$$
@@ -2175,7 +2212,7 @@ We expect that first $m$ fidelities are able to identify the sub-optimality of t
 \begin{Th}
 Let $\rho>4$. There exists some $\Lambda_0>0$ such that for all $\Lambda>\Lambda_0$, 
 \begin{align*}
-R_\Lambda \leq\log\left(\frac{\Lambda}{\lambda^{(M)}}\right)\sum_{m\in [M]}\sum_{i\in\mathcal K^{(m)}}\Delta_i\frac{\lambda^{(m)}}{(\mu_{i^*}-(\mu^{(m)}_i+\xi^{(m)}))^2}.
+R_\Lambda \lesssim\log\left(\frac{\Lambda}{\lambda^{(M)}}\right)\sum_{m\in [M]}\sum_{i\in\mathcal K^{(m)}}\Delta_i\frac{\lambda^{(m)}}{\left(\mu_{i^*}-(\mu^{(m)}_i+\xi^{(m)})\right)^2}.
 \end{align*}
 \end{Th}
 
@@ -2186,7 +2223,17 @@ It is clear from the analysis above that the arms with large sub-optimality gaps
 \end{Rem}
 
 \begin{Rem}
-It is easy to check that MF-UCB is at most a constant times worse than UCB. On the other hand, one would expect that MF-UCB demonstrates a superior performance over UCB if for $i\in\mathcal K^{(m)}$, $\mu_{i^*}-(\mu^{(m)}_i+\xi^{(m)})$ is close to $\Delta_i$, and $\lambda^{(M)}>>\lambda^{(m)}$. A possible formulation of the former is the following fast decay condition:
+MF-UCB is at most a constant times worse than UCB. To see this, note that every arm in the UCB is observed using the highest-fidelity. For $m\in [M]$,  
+\begin{align*}
+\Delta_i\leq\mu_{i^*}-\mu^{(m)}_i+\xi^{(m)}&=\left(\mu_{i^*}-(\mu^{(m)}_i+\xi^{(m)})\right)+2\xi^{(m)}\\
+&\stackrel{\eqref{341}}{\leq} \left(1+\sqrt{\frac{\lambda^{(m+1)}}{\lambda^{(m)}}}\right)\left(\mu_{i^*}-(\mu^{(m)}_i+\xi^{(m)})\right).
+\end{align*}
+Therefore,
+\begin{align*}
+\frac{\frac{\lambda^{(m)}}{\left(\mu_{i^*}-(\mu^{(m)}_i+\xi^{(m)})\right)^2}}{\frac{\lambda^{(M)}}{\left(\mu_{i^*}-(\mu^{(M)}_i+\xi^{(M)})\right)^2}}\leq 4.
+\end{align*}
+
+On the other hand, one would expect that MF-UCB demonstrates a superior performance over UCB if for $i\in\mathcal K^{(m)}$, $\mu_{i^*}-(\mu^{(m)}_i+\xi^{(m)})$ is close to $\Delta_i$, and $\lambda^{(M)}>>\lambda^{(m)}$. A possible formulation of the former is the following fast decay condition:
 \begin{align*}
 \sum_{\ell\in [m]}\frac{1}{(\xi^{(\ell)})^2}\leq\frac{1}{(\xi^{(m+1)})^2}. 
 \end{align*} 
