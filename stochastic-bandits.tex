@@ -530,8 +530,8 @@ Combining this with Remark \eqref{ins-opt} proves the instance optimality of the
 
 \section{Thompson sampling}
 
-In this section, we introduce the Thompson sampling in the context of stochastic bandits. Thompson sampling \cite{Thompson_1933} is well acknowledged as the first bandit algorithm which is named after the Canadian entomologist William R. Thompson. 
-The idea behind it is similar to the UCB, but adopts a Bayesian point of view. Assuming the bandit is selected from a parametric family according to a prior, Thompson sampling uses the posterior computed from the explored data to guide future exploration. 
+In this section, we introduce Thompson sampling in the context of stochastic bandits. Thompson sampling \cite{Thompson_1933} is well acknowledged as the first bandit algorithm which is named after the Canadian entomologist William R. Thompson. 
+The idea behind it is similar to UCB, but adopts a Bayesian point of view. Assuming the bandit is selected from a parametric family according to a prior, Thompson sampling uses the posterior computed from the explored data to guide future exploration. 
 Despite being simple, Thompson sampling has not received much attention in the past eight decades. One possible reason is the long-existing gap between the empirical performance and theoretical guarantee, which was recently filled by the work \cite{agrawal2012analysis} in 2012, where a frequentist-type analysis is provided for the finite-time regret.  Further works on its asymptotic optimality as well as the Bayesian regret can be found in \cite{Kaufmann_2012} and \cite{Russo_2014}, respectively. These results reinforced and further stimulated the resurgence of interest in Thompson sampling in many academic communities. Here, we will focus on some intuitive ideas behind Thompson sampling and provide an upper bound for its Bayesian regret. The discussion is based on the chapter 36 in \cite{lattimore2018bandit} and \cite{Russo_2014}. 
 
 Let $\mathcal E$ be the class of environments. The frequentist view on stochastic bandits is that the true bandit $\mu\in\mathcal E$ is fixed and unknown. In contrast, the Bayesian perspective assumes that $\mu$ is sampled from $\mathcal E$ according to a prior $\Q$ before the game starts, that is, $\mu\sim\Q$. The additional information on $\Q$ can hopefully help us decipher the true bandit through updated posterior. Of course, conditional on $\mu$, the cumulative regret is the same as before; however, since $\mu$ is random based on our assumption on the model, it would be more natural to consider the averaged regret defined as
@@ -540,7 +540,9 @@ R_{n, \BR}=\E_\Q[R_{n,\mu}],\label{br}
 \end{align}
 where $R_{n,\mu}$ is defined in \eqref{s:1}. \eqref{br} is referred to as the \emph{Bayesian regret}. Bayesian optimality (as opposed to the minimax optimality) is measured by the Bayesian regret. A major appeal of the Bayesian framework is that the optimal Bayesian strategy can often be described, if not always computed. This result is closely related to the Gittins indices which we will discuss in detail in chapter \ref{ch:5}.
 
-Thompson sampling can be described as follows. Assuming data $x_{s\pi_s}$ has been observed for $s\leq t$, one can then compute the posterior distribution on $\mu$ using the prior: $\Q(\mu|x_{s\pi_s}, 1\leq s\leq t)$. Instead of directly taking the statistics of the posterior to choose $\pi_{t+1}$, one samples a new bandit according to the posterior, and set $\pi_{t+1}$ as the optimal arm in the random realization. This randomization forces exploration until the posterior is concentrated, in which case it is expected to close to $\mu$. The details of the algorithm are as follows:
+Thompson sampling can be described as follows. Assuming data $x_{s\pi_s}$ has been observed for $s\leq t$, one can compute the posterior distribution on $\mu$ using the prior: $\Q(\mu|x_{s\pi_s}, 1\leq s\leq t)$. 
+Thompson sampling directly draws a new bandit according to the posterior, and sets $\pi_{t+1}$ as the optimal arm in the random realization. 
+This randomization forces exploration until the posterior is concentrated, in which case it is expected to close to $\mu$. The details of the algorithm are as follows:
 
 \begin{algorithm}[H]
  \KwIn{$n$: horizon; $\Q$: prior distribution on the bandit}
@@ -555,7 +557,9 @@ Thompson sampling can be described as follows. Assuming data $x_{s\pi_s}$ has be
 \label{alg:TS}
 \end{algorithm}
 
-Before analyzing Algorithm \ref{alg:TS}, we give some intuition why the posterior distribution is helpful for the inference of $\mu$. For convenience we assume that the bandit is unstructured. Let $f_i(x;\nu_i)$ be the density of the reward of arm $i$ with parameter $\nu_i$. For $i\in [k]$, let $n_i$ be the number of pulls on $i$, and denote the corresponding rewards as $z_{i1}, \cdots, z_{in_i}$. For convenience we may assume that $n_i$ are deterministic. In this case, the posterior distribution $p$ given the explored data is
+\medskip
+
+Before analyzing Algorithm \ref{alg:TS}, we give some intuition why the posterior distribution is helpful for inference on $\mu$. For convenience we assume that the bandit is unstructured. Let $f_i(x;\nu_i)$ be the density of the reward of arm $i$ with parameter $\nu_i$. For $i\in [k]$, let $n_i$ be the number of pulls on $i$, and denote the corresponding rewards by $z_{i1}, \cdots, z_{in_i}$. We assume that $n_i$'s are deterministic. In this case, the posterior distribution $p$ given the explored data is
 \begin{align*}
 p(\nu)\propto\Q(\nu)\prod_{i\in [k]}\prod_{t\in [n_i]}f_i(z_{it};\nu_i).
 \end{align*}
@@ -571,7 +575,7 @@ so that
 \end{align*}
 where $\mathsf D_{KL}(\cdot, \cdot)$ is the KL-divergence. This observation has the following consequences:
 \begin{itemize}
-\item When $i$ has been pulled many times, the $i$-th marginal of $p(\nu)$ is concentrated, thus encouraging future pulls to explore in other directions. When all arms have been well-explored, $p(\nu)d\nu\approx\delta_{\mu}$.
+\item When $i$ has been pulled many times, the $i$-th marginal of $p(\nu)$ is concentrated, thus encouraging future pulls to explore other directions. When all arms have been well-explored, $p(\nu)d\nu\approx\delta_{\mu}$.
 
 \item The convergence rate of $p(\nu)d\nu$ to $\delta_{\mu}$ would be slow if $\Q(\mu)$ is small, so the bandit in this case is hard to learn from the posterior, hence a large $R_{n,\mu}$ is expected. On the other hand, $\Q(\mu)$ being small suggests that $\mu$ is unlikely to be obtained under $\Q$. When averaging over $\Q$, $R_{n,\mu}$ should be not too large. 
 \end{itemize}
@@ -579,7 +583,7 @@ where $\mathsf D_{KL}(\cdot, \cdot)$ is the KL-divergence. This observation has 
 These observations give some informal justification for the promising performance of Thompson sampling. The next theorem provides a rigorous upper bound for the Bayesian regret under appropriate assumptions:
 
 \begin{Th}
-In the Bayesian bandit set-up, assume that for $\nu\in\mathcal E$ and $i\in [k]$, $\nu_i$ has its mean in $[0,1]$ and is $1$-sub-gaussian after centering. Then, the Bayesian regret in the Thompson sampling is bounded by
+In the Bayesian bandit set-up, assume that for $\nu\in\mathcal E$ and $i\in [k]$, $\nu_i$ has its mean in $[0,1]$ and is $1$-sub-gaussian after centering. If $k\leq n\log n/4$, then the Bayesian regret in Thompson sampling is bounded by
 \begin{align*}
 R_{n,\BR}\leq 9\sqrt{kn\log n}. 
 \end{align*}
@@ -600,12 +604,18 @@ With probability at least $1-kn\delta$, for $i\in [k]$ and $t\in [k]$,
 \end{align*}
 Therefore,
 \begin{align*}
-R_{n,\BR}&\leq kn^2\delta + \sum_{i\in [k]}\int_{0}^{T_{i}(n)}2\sqrt{\frac{2\log\left(\frac{1}{\delta}\right)}{x}}dx\\
-&\leq kn^2\delta + \sum_{i\in [k]}\sqrt{32T_i(n)\log\left(\frac{1}{\delta}\right)}\\
-&\leq kn^2\delta+\sqrt{32nk\log\left(\frac{1}{\delta}\right)},
+R_{n,\BR}&\leq 2kn^2\delta + \sum_{i\in [k]}\int_{0}^{T_{i}(n)}2\sqrt{\frac{2\log\left(\frac{1}{\delta}\right)}{x}}dx\\
+&\leq 2kn^2\delta + \sum_{i\in [k]}\sqrt{32T_i(n)\log\left(\frac{1}{\delta}\right)}\\
+&\leq 2kn^2\delta+\sqrt{32nk\log\left(\frac{1}{\delta}\right)},
 \end{align*}
 where the last step follows from Jensen's inequality. Setting $\delta=n^{-2}$ completes the proof. 
 \end{proof}
+
+
+\begin{Rem}
+As opposed to frequentist-based methods, Thompson is often more robust when observation delay happens. Also, from a computational perspective, Thompson sampling is more convenient when the subroutine involves complicated optimization problems, see Remark \ref{sl:TP}.
+\end{Rem}
+
 
 \begin{Rem}
 The idea of using direct sampling from posterior distributions can be further extended. 
@@ -628,7 +638,7 @@ Such idea first appeared in \cite{kaufmann2012bayesian} and the corresponding al
 \label{alg:B-UCB}
 \end{algorithm}
 
-Analysis of Algorithm \ref{alg:B-UCB} in the frequentist setting for Bernoulli bandits with Beta priors is given in \cite{kaufmann2012bayesian}. The idea follows from our intuition provided before but was made rigorous using the tail bounds for Beta distributions. Numerical results in the paper demonstrated a superior performance of Bayes-UCB over some other frequentist-based algorithms. It also showed that the Bayes-UCB strategy, when used with a sparsity-incuding prior, can be numerically approximated using Markov Chain Monte Carlo simulations.  
+Analysis of Algorithm \ref{alg:B-UCB} in the frequentist setting for Bernoulli bandits with Beta priors is given in \cite{kaufmann2012bayesian}. The idea follows from our intuition provided before but was made rigorous using the tail bounds for Beta distributions. Numerical results in the paper demonstrated a superior performance of Bayes-UCB over some other frequentist-based algorithms. It also showed that the Bayes-UCB strategy, when used with a sparsity-inducing prior, can be numerically approximated using Markov Chain Monte Carlo simulations.  
 
 \end{Rem}
 
@@ -906,7 +916,7 @@ An alternative approach, as observed in \cite{filippi2010parametric}, is that th
 The specific choice for $\beta_t$ with theoretical guarantee can be found in \cite{filippi2010parametric, li2017provably}. The penalty term can be viewed as the variance, so that exploration is encouraged when the variance is large. 
 \end{Rem}
 
-\begin{Rem}[Thompson sampling for stochastic linear bandits]
+\begin{Rem}[Thompson sampling for stochastic linear bandits]\label{sl:TP}
 Thompson sampling can also be used for stochastic linear bandits. Assuming that the true parameter is generated from some distribution $\Q$, then the algorithm can be described as follows:
 
 \begin{algorithm}[H]
@@ -918,10 +928,9 @@ Thompson sampling can also be used for stochastic linear bandits. Assuming that 
  \STATE{$a_{t} = \argmax_{a\in \mathcal A_{t}}\langle\t, a\rangle$}
 \ENDFOR
  \end{algorithmic}
-\caption{Thompson Sampling for Linear Bandits} 
+\caption{Thompson Sampling for Stochastic Linear Bandits} 
 \label{alg:TSL}
 \end{algorithm}
-A major advantage of Thompson sampling over frequentist based methods is the computational convenience. 
 \end{Rem}
 
 We next give two ways of finding valid $\beta_t$'s to achieve \eqref{sl:9}, both of which used the maximal inequality for self-normalized martingales. 
@@ -1021,7 +1030,7 @@ When building up the confidence sets in the sparsity case, one needs to know the
 
 
 \section{Application of stochastic linear bandits on graphs}
-An interesting application of stochastic linear bandits in graph learning is the spectral bandit model \cite{valko2014spectral}. 
+An interesting application of stochastic linear bandits in graph learning is the spectral bandit \cite{valko2014spectral}. 
 Other related models will be summarized in the final remark at the end of this section. 
 Let $G=(V, E)$ be an undirected graph with $d$ vertices. 
 For convenience, we write $V=[d]$. 
@@ -1029,11 +1038,11 @@ Let $\mathcal W, \mathcal D\in\R^{d\times d}$ be the similarity matrix and degre
 The unnormalized Laplacian of $G$ is defined as $\mathcal L=\mathcal D-\mathcal W$. 
 In a social network represented by $G$, $\mathcal W$ measures the connections between the nodes and $\mathcal L$ measures the network diffusion dynamics. 
 To formulate a bandit learning problem, we assume that $V$ is the complete action set.
-At each step $t$, a subset $V_t\subset V$ is selected for the player to choose actions from.
+At each step $t$, a subset $V_t\subset V$ is selected for the player to choose an action from.
 This should be differentiated from the model where players are assigned with a node and he/she needs to choose an action from the given context \cite{cesa2013gang}.  
 The expected reward by pulling $i$ is given by $r_i$, with its fluctuation charactered by a $1$-sub-gaussian distribution. 
 As before, the goal is to find a strategy such that after some time $n$, the cumulative regret (which is defined in \eqref{sl:4}) is small.  
-Without further assumption, this problem is nothing but a $d$-armed bandits with time-varying action sets, which can be effectively tackled using Algorithm \ref{alg:sl-UCB}\footnote{One can think of $r\in\R^d$ and node $i$ corresponds to the canonical vector $e_i\in\R^d$. }. 
+Without further assumption, this problem is nothing but a $d$-armed bandits with time-varying action sets, which can be tackled using Algorithm \ref{alg:sl-UCB}\footnote{One can think of $r\in\R^d$ and node $i$ corresponds to the canonical vector $e_i\in\R^d$. }. 
 
 In many practical situations, however, the topological properties of $G$ dictate the potential shape of $r$. 
 For example, a smoothness assumption requires that $r$ changes smoothly within the clusters of $V$, which are depicted by the spectrum of $\mathcal L$.  
@@ -1047,7 +1056,8 @@ and for $i\in [d]$,
 r_i = \langle\t, \bar{q}^{(i)}\rangle\ \ \ \ \ \ \ \ \ \t = (\t^{(1)},\cdots, \t^{(d)})^T,
 \end{align*}
 where $\bar{q}^{(i)}$ is the $i$-th row vector of $Q$. 
-The smoothness assumption on $r$ can be stated as $||r||_{\Lambda}$ being small. Since $||\cdot||_\Lambda$ is not a well-defined norm ($\lambda_1=0$), we therefore consider $||r||_\Gamma$ where $\Gamma = \Lambda +\lambda I$ for some small $\lambda>0$. 
+The smoothness assumption on $r$ can be stated as $||r||_{\Lambda}$ being small. 
+Since $||\cdot||_\Lambda$ is not a well-defined norm ($\lambda_1=0$), we therefore use the same trick as before and consider $||r||_\Gamma$ where $\Gamma = \Lambda +\lambda I$ for some small $\lambda>0$. 
 Let $\mathcal A$ be the set of row vectors of $Q$. The smoothness assumption is equivalent to estimating $\t$ via a ridge estimator penalized by an anisotropic norm term:
 \begin{align}\label{estt}
 \hat{\t}_t = (\underbrace{\Gamma +A^T_{t-1}A_{t-1}}_{V_{t-1}(\lambda)})^{-1}A^T_{t-1}\begin{pmatrix}
@@ -1093,6 +1103,7 @@ d_{\text{eff}}=\max\left\{d: (d-1)\lambda_d\leq\frac{n}{\log(1+\frac{n}{\lambda}
 where $\lambda_d$ is the $d$-th smallest eigenvalue of $\mathcal L$. 
 \end{Def}
 
+An intuitive interpretation on the effective dimension is that it finds where the spectral gap occurs thus giving the number of clusters in the graph. Since the unknown vector only changes mildly within clusters, the effective dimension represents the true complexity in terms of learning. 
 The following lemma allows us to bound $\log(\det V_n(\lambda)/\det V_1(\lambda))$ using $d_{\text{eff}}$:
 
 \begin{Lemma}\label{effd}
@@ -1308,7 +1319,7 @@ Let $p$ be a probability distribution on $\mathcal A$. We now state the Exp3 alg
 \STATE $t = t +1$ 
 \ENDWHILE
 \end{algorithmic}
-\caption{Exp3 algorithm for adversarial linear bandits} 
+\caption{Exp3 Algorithm for Adversarial Linear Bandits} 
 \label{alg:al-Exp3}
 \end{algorithm}
 
@@ -1387,7 +1398,7 @@ Since we are comparing our strategy to the best expert in hindsight, we will put
  \STATE $P_{t+1}\propto e^{-\eta\sum_{s=1}^t\tilde{Y}_s}$ \ \ \ \ \ \tcp{Exponential weighting}
 \ENDFOR
 \end{algorithmic}
-\caption{Exp4 algorithm bandits with expert advice} 
+\caption{Exp4 Algorithm for Bandits with Expert Advice} 
 \label{alg:al-Exp4}
 \end{algorithm}
 
@@ -1509,7 +1520,7 @@ Results in Theorem \ref{al:FTRL} and \ref{al:MR} can be easily modified to apply
 \STATE $t = t +1$ 
 \ENDWHILE
 \end{algorithmic}
-\caption{FTRL/Mirror descent algorithms for adversarial linear bandits} 
+\caption{FTRL/Mirror Descent Algorithms for Adversarial Linear Bandits} 
 \label{alg:al-Exp3r}
 \end{algorithm}
 
@@ -1679,7 +1690,7 @@ We apply the Universal Portfolio \footnote{The integrals used in weighting are c
 
 \begin{figure}[h!]
 \centering
-  \includegraphics[width=10 cm]{UP.pdf}
+  \includegraphics[width=9 cm]{UP.pdf}
   \caption{Simulation of Universal Portfolio on the dataset of the four largest banks in the US. Time period: $1990$-$2020$. }
   \label{fig:UP}
 \end{figure}
@@ -1770,7 +1781,7 @@ We now turn to discuss the algorithms. The first algorithm we have in mind is th
 \STATE{Play each arm $\lfloor\frac{n}{k}\rfloor$ times and compute their empirical mean: $\hat{\mu}_1,\cdots,\hat{\mu}_k$} 
 \STATE{$\psi_{n}=\argmax_{i\in [k]}\hat{\mu}_i$}
 \end{algorithmic}
-\caption{The Uniform Allocation Algorithm. } 
+\caption{The Uniform Allocation Algorithm} 
 \label{alg:UA}
 \end{algorithm}
 
@@ -1808,7 +1819,7 @@ and $\hat{\mu}_i(t-1)=\frac{1}{T_i(t-1)}\sum_{s\in [t-1]}x_{s\pi_s}\mathbb{I}_{\
 \ENDWHILE
 \STATE{$\psi_n = \argmax_{i\in [k]}\hat{\mu}_i(n)$} 
 \end{algorithmic}
-\caption{The Upper Confidence Bound Exploration Algorithm. } 
+\caption{The Upper Confidence Bound Exploration Algorithm } 
 \label{alg:UCBa}
 \end{algorithm}
 
@@ -1893,7 +1904,7 @@ The Sequential Halving algorithm can be thought as the multi-phase UAS. The expl
  \FOR{$\ell = 1, 2, c\dots, L$} 
  \STATE {Play each arm in $\mathcal A_\ell$ exactly $\lfloor\frac{n}{L|\mathcal A_\ell|}\rfloor$ times}
 \STATE{Compute the empirical means of the arms in $\mathcal A_\ell$ using the data in round $\ell$, and sort in decreasing order: $\hat{\mu}^{(1)}_{\ell}\geq \cdots\geq\hat{\mu}^{(|\mathcal A_\ell|)}_{\ell}$}
-\STATE{Take $\mathcal A_{\ell+1}$ as the the arms in $\mathcal A_\ell$ corresponding to $\hat{\mu}^{(1)}_{\ell}, \cdots, \hat{\mu}^{(\lceil\mathcal |A_\ell|/2\rceil)}_{\ell}$.} 
+\STATE{Take $\mathcal A_{\ell+1}$ as the the arms in $\mathcal A_\ell$ corresponding to $\hat{\mu}^{(1)}_{\ell}, \cdots, \hat{\mu}^{(\lceil\mathcal |A_\ell|/2\rceil)}_{\ell}$} 
 \ENDFOR   
 \end{algorithmic}
 \label{alg:SH}
@@ -2016,7 +2027,7 @@ The rationale behind the above greedy strategy is that $\hat{\mu}$ is close enou
 \ENDWHILE  
 \STATE {$\tau = t,  \psi = \argmax_{i\in [k]}\hat{\mu}_i$} 
 \end{algorithmic}
-\caption{The Track-and-Stop Algorithm. } 
+\caption{The Track-and-Stop Algorithm} 
 \label{alg:TaS}
 \end{algorithm}
 
@@ -2165,9 +2176,9 @@ where $i^*$ is the optimal arm. It is easy to check that up to a constant, $R_\L
 \begin{align*}
  \E\left[\sum_{t\in [n]}\lambda^{(\pi_{t,2})}\Delta_{\pi_{t,1}}\right]\leq R_\Lambda = \E\left[\sum_{t\in [n]}\lambda^{(\pi_{t,2})}\Delta_{\pi_{t,1}}\right] + \text{constant term},
 \end{align*}
-where $\Delta_i$ is the sub-optimality gap between $i$ and $i^*$. We will now leave the constant term out since it will not affect the order of the bound for $R_\Lambda$. To get a decomposition of $R_\Lambda$ as in \eqref{s:2}, we need a few more notations. Let $T_{i,t}^{(m)}$ be the number of times of playing $i$ at fidelity $m$ before time $t$.  Then, 
+where $\Delta_i$ is the sub-optimality gap between $i$ and $i^*$. We will now leave the constant term out since it will not affect the order of the bound for $R_\Lambda$. To get a decomposition of $R_\Lambda$ as in \eqref{s:2}, we need a few more notations. Let $T_{i}^{(m)}(t)$ be the number of times of playing $i$ at fidelity $m$ before time $t$.  Then, 
 \begin{align*}
-R_\Lambda = \sum_{i\in [k]}\Delta_i\sum_{m\in [M]}\lambda^{(m)}\E\left[T_{i,n}^{(m)}\right]. 
+R_\Lambda = \sum_{i\in [k]}\Delta_i\sum_{m\in [M]}\lambda^{(m)}\E\left[T_{i}^{(m)}(n)\right]. 
 \end{align*}
 We now describe an algorithm called the Multi-fidelity UCB (MF-UCB) for learning in multi-fidelity bandits. 
 MF-UCB was first introduced in \cite{kandasamy2016multi}; it is algorithmic structure resembles the Elimination algorithm in Algorithm \ref{alg:elimination}. 
@@ -2181,12 +2192,12 @@ For each $i\in [k]$, MF-UCB starts with the low-fidelity estimate for $\mu_i$. A
  \WHILE{pulling is feasible}
  \FOR{$i = 1, \cdots, k$ }
  \FOR{$m = 1,\cdots, M$}
- \STATE $\mathcal B_{i,t}^{(m)} = \hat{\mu}^{(m)}_{i, t-1}+\sqrt{\frac{\rho\log t}{T^{(m)}_{i, t-1}}}+\xi^{(m)},$\ \ \ \ \ \tcp{optimistic estimate using UCB and the fidelity approximation error} where $\hat{\mu}^{(m)}_{i, t-1}$ is the sample mean of $\mu_{i}^{(m)}$ estimated before $t$. 
+ \STATE $\mathcal B_{i}^{(m)}(t) = \hat{\mu}^{(m)}_{i}(t-1)+\sqrt{\frac{\rho\log t}{T^{(m)}_{i}(t-1)}}+\xi^{(m)},$\ \ \ \ \ \tcp{optimistic estimate using UCB and the fidelity approximation error} where $\hat{\mu}^{(m)}_{i}(t-1)$ is the sample mean of $\mu_{i}^{(m)}$ estimated before $t$. 
  \ENDFOR
- \STATE $\mathcal B_{i,t} = \min_{m\in [M]}\mathcal B_{i,t}^{(m)}$ \ \ \ \ \tcp{Be conservative while being optimistic}
+ \STATE $\mathcal B_{i}(t) = \min_{m\in [M]}\mathcal B_{i}^{(m)}(t)$ \ \ \ \ \tcp{Be conservative while being optimistic}
  \ENDFOR
-\STATE $\pi_{t,1} = \argmax_{i\in [k]}\mathcal B_{i,t}$
-\STATE $\pi_{t,2} = \min\left\{m\leq M: \sqrt{\rho\log t/T^{(m)}_{\pi_{t,1}, t-1}}\geq\gamma^{(m)}\right\}$ \ \ \ \ \ \ \tcp{determine the lowest under-explored fidelity}
+\STATE $\pi_{t,1} = \argmax_{i\in [k]}\mathcal B_{i}(t)$
+\STATE $\pi_{t,2} = \min\left\{m\leq M: \sqrt{\rho\log t/T^{(m)}_{\pi_{t,1}}(t-1)}\geq\gamma^{(m)}\right\}$ \ \ \ \ \ \ \tcp{determine the lowest under-explored fidelity}
 \STATE $\Lambda_{t+1} = \Lambda_t - \lambda^{(\pi_{t,2})}$
 \STATE $t = t+1$
 \ENDWHILE
@@ -2195,7 +2206,7 @@ For each $i\in [k]$, MF-UCB starts with the low-fidelity estimate for $\mu_i$. A
 \label{alg:MF-UCB}
 \end{algorithm}
 
-In the definition of $\mathcal B_{i,t}^{(m)}$, the second term comes from the confidence level under the sub-gaussian assumption, and the third term is the error of the $m$-fidelity approximation, which will not be affected as $T^{(m)}_{i, t-1}$ increases. Therefore, when $T^{(m)}_{i, t-1}$ is so large that the upper confidence bonus falls within the same level as $\xi^{(m)}$, one probably should go to the next fidelity for further exploration. This observation suggests choosing $\gamma^{(m)}$ as $\gamma^{(m)}=\mathcal O(\xi^{(m)})$. Indeed, it was shown in \cite{kandasamy2016multi} that taking  
+In the definition of $\mathcal B_{i}^{(m)}(t)$, the second term comes from the confidence level under the sub-gaussian assumption, and the third term is the error of the $m$-fidelity approximation, which will not be affected as $T^{(m)}_{i}(t-1)$ increases. Therefore, when $T^{(m)}_{i}(t-1)$ is so large that the upper confidence bonus falls within the same level as $\xi^{(m)}$, one probably should go to the next fidelity for further exploration. This observation suggests choosing $\gamma^{(m)}=\mathcal O(\xi^{(m)})$. Indeed, it was shown in \cite{kandasamy2016multi} that taking  
 \begin{align*}
 \gamma^{(m)} = \sqrt{\frac{\lambda^{(m)}}{\lambda^{(m+1)}}}\xi^{(m)}\leq\xi^{(m)}
 \end{align*}
